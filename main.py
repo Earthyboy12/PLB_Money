@@ -87,6 +87,7 @@ def set_config(data: Dict[str, str]):
 @app.post("/api/upload-and-analyze")
 async def upload_and_analyze(files: List[UploadFile] = File(...)):
     results = []
+    ignored = []
     for file in files:
         file_ext = os.path.splitext(file.filename)[1].lower()
         if not file_ext:
@@ -100,6 +101,18 @@ async def upload_and_analyze(files: List[UploadFile] = File(...)):
 
         # Analyze slip
         analysis = parser.analyze_slip(save_path, file.filename)
+        if not analysis.get("is_slip", True):
+            # Ignored non-slip photo
+            ignored.append({
+                "filename": file.filename,
+                "reason": analysis.get("reason", "ไม่ใช่สลิปการเงิน")
+            })
+            try:
+                os.remove(save_path)
+            except Exception:
+                pass
+            continue
+
         data = analysis.get("data", {})
         data["image_path"] = f"/static/uploads/{unique_name}"
         data["original_filename"] = file.filename
@@ -107,7 +120,14 @@ async def upload_and_analyze(files: List[UploadFile] = File(...)):
 
         results.append(data)
 
-    return {"status": "success", "items": results}
+    return {
+        "status": "success",
+        "total_scanned": len(files),
+        "slips_found": len(results),
+        "ignored_count": len(ignored),
+        "items": results,
+        "ignored": ignored
+    }
 
 @app.post("/api/save-transaction")
 def save_transaction(item: Dict[str, Any]):

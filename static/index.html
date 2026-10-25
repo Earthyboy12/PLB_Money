@@ -303,6 +303,47 @@
 
     <!-- Tab 2: Scan / Upload Slips (อัปโหลดและวิเคราะห์สลิป) -->
     <section id="tab-scan" class="hidden space-y-4">
+      
+      <!-- Gallery Hunter Time Filter Bar -->
+      <div class="frost-glass p-4 rounded-3xl border border-sky-400/25 shadow-lg space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-base">🐻‍❄️🔍</span>
+            <div>
+              <h3 class="text-xs font-bold text-sky-100 font-cute">GALLERY SLIP SWEEPER</h3>
+              <p class="text-[11px] text-slate-400">กรองรูปในอัลบั้มย้อนหลัง & คัดเฉพาะสลิปเงิน</p>
+            </div>
+          </div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-sky-400/10 text-sky-300 border border-sky-400/30">
+            AUTO FILTER
+          </span>
+        </div>
+
+        <!-- Range Buttons -->
+        <div class="grid grid-cols-3 gap-2">
+          <button type="button" onclick="setGalleryRange('6months')" id="range-btn-6months" class="range-btn py-2 px-2 rounded-xl text-xs font-medium bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 border border-slate-700/50 transition text-center flex flex-col items-center">
+            <span class="text-[10px] text-slate-400">ย้อนหลัง</span>
+            <span class="font-bold text-xs mt-0.5">🕒 6 เดือน</span>
+          </button>
+          <button type="button" onclick="setGalleryRange('1year')" id="range-btn-1year" class="range-btn py-2 px-2 rounded-xl text-xs font-medium bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 border border-slate-700/50 transition text-center flex flex-col items-center">
+            <span class="text-[10px] text-slate-400">ย้อนหลัง</span>
+            <span class="font-bold text-xs mt-0.5">📅 1 ปี</span>
+          </button>
+          <button type="button" onclick="setGalleryRange('all')" id="range-btn-all" class="range-btn active py-2 px-2 rounded-xl text-xs font-bold aurora-btn text-white transition text-center flex flex-col items-center">
+            <span class="text-[10px] text-sky-100/80">ทั้งหมด</span>
+            <span class="font-bold text-xs mt-0.5">♾️ ทั้งคลังภาพ</span>
+          </button>
+        </div>
+
+        <!-- Tips hint -->
+        <div class="p-2.5 rounded-xl bg-sky-950/40 border border-sky-400/20 text-[11px] text-sky-200/90 leading-relaxed flex items-start gap-2">
+          <i class="fa-solid fa-lightbulb text-amber-400 mt-0.5 shrink-0"></i>
+          <span>
+            <strong>วิธีเลือกรูปบนมือถือ:</strong> แตะปุ่มด้านล่าง ➔ ในหน้าเลือกรูปให้แตะ <strong>"เลือก (Select)"</strong> แล้วลากนิ้วคลุมรูปทั้งหมด หรือเลือกทั้งอัลบั้ม Screenshots ได้เลย! AI จะคัดแยกรูปทั่วไปทิ้งให้อัตโนมัติ เหลือเฉพาะสลิปโอนเงินเท่านั้น ❄️
+          </span>
+        </div>
+      </div>
+
       <!-- Polar Bear Scanner Dropzone -->
       <div class="relative overflow-hidden frost-glass p-7 rounded-3xl border-2 border-dashed border-sky-400/40 hover:border-sky-300 transition text-center group cursor-pointer">
         <input type="file" id="slipFileInput" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
@@ -312,21 +353,35 @@
           <div class="w-20 h-20 rounded-2xl bg-slate-900/80 border border-sky-400/40 p-1 mb-3 frost-glow shadow-xl group-hover:scale-105 transition">
             <img src="/static/logo.png" alt="Bear Mascot" class="w-full h-full object-contain">
           </div>
-          <h3 class="font-bold text-base text-sky-100 font-cute tracking-wide mb-1">
-            แตะเพื่อถ่ายรูป หรือ เลือกรูปสลิปจากอัลบั้ม
+          <h3 class="font-bold text-base text-sky-100 font-cute tracking-wide mb-1" id="dropzoneTitle">
+            แตะเพื่อเลือกรูปจาก Gallery มือถือ
           </h3>
-          <p class="text-xs text-slate-400 max-w-sm mb-4 leading-relaxed">
-            เลือกได้หลายสลิปพร้อมกัน AI ขั้วโลกจะช่วยอ่านยอดเงิน ธนาคาร วันที่ และจัดหมวดหมู่อัตโนมัติ ❄️
+          <p class="text-xs text-slate-400 max-w-sm mb-4 leading-relaxed" id="dropzoneSubtitle">
+            เลือกรูปทั้งหมดหรือหลายร้อยรูปพร้อมกันได้เลย ระบบจะกรองช่วงเวลาและหาเฉพาะสลิปเงินให้
           </p>
           <div class="flex flex-wrap items-center justify-center gap-2.5">
             <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl aurora-btn text-white text-xs font-bold shadow-md">
-              <i class="fa-solid fa-images"></i> เลือกภาพสลิปในมือถือ
+              <i class="fa-solid fa-images"></i> เปิด Gallery ในมือถือ
             </span>
             <button type="button" onclick="loadSampleIntoScanner()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900/80 text-sky-300 hover:bg-sky-950/60 border border-sky-400/30 text-xs font-medium transition z-20">
               <i class="fa-solid fa-vial"></i> ลองสแกน 4 สลิปตัวอย่าง
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Scan Sweeper Results Summary Banner -->
+      <div id="sweeperSummary" class="hidden frost-glass p-4 rounded-2xl border border-sky-400/30 flex items-center justify-between gap-2 shadow-lg">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">🎯</span>
+          <div>
+            <div class="text-xs font-bold text-sky-100" id="sweeperTitle">ผลการกวาดสลิปในอัลบั้ม</div>
+            <div class="text-[11px] text-slate-400" id="sweeperDesc">ตรวจพบ 0 สลิป</div>
+          </div>
+        </div>
+        <span class="px-2.5 py-1 rounded-xl bg-sky-400/20 text-sky-300 font-mono text-xs font-bold border border-sky-400/30" id="sweeperBadge">
+          0 SLIPS
+        </span>
       </div>
 
       <!-- Analyzing Spinner -->
@@ -337,8 +392,8 @@
             🐻‍❄️
           </div>
         </div>
-        <h4 class="font-bold text-sm text-sky-100 font-cute">AI หมีขั้วโลกกำลังอ่านสลิป...</h4>
-        <p class="text-xs text-slate-400" id="loadingStatusText">กำลังดึงยอดเงิน วันที่ ธนาคาร และจัดหมวดหมู่อัตโนมัติ</p>
+        <h4 class="font-bold text-sm text-sky-100 font-cute">AI หมีขั้วโลกกำลังคัดแยกสลิป...</h4>
+        <p class="text-xs text-slate-400" id="loadingStatusText">กำลังดึงยอดเงิน วันที่ ธนาคาร และคัดกรองรูปที่ไม่ใช่สลิปออกให้อัตโนมัติ</p>
       </div>
 
       <!-- Scanned Slips Queue / Edit before save -->
@@ -860,11 +915,57 @@
       }
     }
 
-    // Scan & Upload Flow
+    // Gallery Hunter Range Filter Logic
+    let currentGalleryRange = 'all'; // '6months', '1year', 'all'
+
+    function setGalleryRange(range) {
+      currentGalleryRange = range;
+      ['6months', '1year', 'all'].forEach(r => {
+        const btn = document.getElementById(`range-btn-${r}`);
+        if (r === range) {
+          btn.className = 'range-btn active py-2 px-2 rounded-xl text-xs font-bold aurora-btn text-white transition text-center flex flex-col items-center';
+        } else {
+          btn.className = 'range-btn py-2 px-2 rounded-xl text-xs font-medium bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 border border-slate-700/50 transition text-center flex flex-col items-center';
+        }
+      });
+
+      const sub = document.getElementById('dropzoneSubtitle');
+      if (range === '6months') {
+        sub.innerText = 'จะคัดเลือกเฉพาะรูปที่บันทึกในช่วง 6 เดือนล่าสุด และ AI จะกรองเฉพาะสลิปเงินให้';
+      } else if (range === '1year') {
+        sub.innerText = 'จะคัดเลือกเฉพาะรูปที่บันทึกในช่วง 1 ปีล่าสุด และ AI จะกรองเฉพาะสลิปเงินให้';
+      } else {
+        sub.innerText = 'เลือกรูปทั้งหมดหรือหลายร้อยรูปพร้อมกันได้เลย ระบบจะหาเฉพาะสลิปเงินให้';
+      }
+    }
+
+    // Scan & Upload Flow with Time Range Filter
     async function handleFileSelect(e) {
-      const files = e.target.files;
-      if (!files || files.length === 0) return;
-      await uploadAndAnalyzeFiles(files);
+      const allFiles = Array.from(e.target.files || []);
+      if (allFiles.length === 0) return;
+
+      const now = Date.now();
+      let filteredFiles = allFiles;
+      let rangeLabel = 'ทั้งหมดในคลัง';
+
+      if (currentGalleryRange === '6months') {
+        const cutoff = now - (180 * 24 * 60 * 60 * 1000);
+        filteredFiles = allFiles.filter(f => f.lastModified >= cutoff);
+        rangeLabel = '6 เดือนล่าสุด';
+      } else if (currentGalleryRange === '1year') {
+        const cutoff = now - (365 * 24 * 60 * 60 * 1000);
+        filteredFiles = allFiles.filter(f => f.lastModified >= cutoff);
+        rangeLabel = '1 ปีล่าสุด';
+      }
+
+      if (filteredFiles.length === 0) {
+        alert(`ไม่พบรูปภาพในช่วง "${rangeLabel}" ที่เลือกไว้ (จากทั้งหมด ${allFiles.length} รูปที่เลือกมา)`);
+        e.target.value = '';
+        return;
+      }
+
+      const skippedByDate = allFiles.length - filteredFiles.length;
+      await uploadAndAnalyzeFiles(filteredFiles, allFiles.length, skippedByDate, rangeLabel);
       e.target.value = '';
     }
 
@@ -895,6 +996,12 @@
         if (data.status === 'success') {
           scannedItems = data.items;
           renderScannedCards();
+
+          const summary = document.getElementById('sweeperSummary');
+          summary.classList.remove('hidden');
+          document.getElementById('sweeperTitle').innerText = 'ผลการกวาด 4 สลิปตัวอย่าง';
+          document.getElementById('sweeperDesc').innerText = `สแกนทั้งหมด 4 รูป ➔ ตรวจพบเป็นสลิปเงินครบทั้ง 4 ใบ ❄️`;
+          document.getElementById('sweeperBadge').innerText = '4 SLIPS FOUND';
         }
       } catch (err) {
         alert('เกิดข้อผิดพลาด: ' + err.message);
@@ -903,9 +1010,9 @@
       }
     }
 
-    async function uploadAndAnalyzeFiles(files) {
+    async function uploadAndAnalyzeFiles(files, totalSelected = 0, skippedByDate = 0, rangeLabel = 'ทั้งหมดในคลัง') {
       document.getElementById('analysisLoading').classList.remove('hidden');
-      document.getElementById('loadingStatusText').innerText = `กำลังวิเคราะห์ ${files.length} สลิปด้วย AI...`;
+      document.getElementById('loadingStatusText').innerText = `กำลังคัดกรอง ${files.length} รูป... AI กำลังค้นหาเฉพาะสลิปธนาคาร`;
 
       const formData = new FormData();
       for (let i = 0; i < files.length; i++) {
@@ -921,6 +1028,21 @@
         if (data.status === 'success') {
           scannedItems = [...data.items, ...scannedItems];
           renderScannedCards();
+
+          // Display sweeper summary
+          const summary = document.getElementById('sweeperSummary');
+          summary.classList.remove('hidden');
+          document.getElementById('sweeperTitle').innerText = `ผลการกวาดรูป (ช่วง: ${rangeLabel})`;
+          let desc = `ตรวจสแกน ${data.total_scanned} รูป ➔ พบสลิปเงิน ${data.slips_found} ใบ (ข้ามรูปทั่วไป ${data.ignored_count} รูป)`;
+          if (skippedByDate > 0) {
+            desc += ` • นอกช่วงเวลา ${skippedByDate} รูป`;
+          }
+          document.getElementById('sweeperDesc').innerText = desc;
+          document.getElementById('sweeperBadge').innerText = `${data.slips_found} SLIPS FOUND`;
+
+          if (data.slips_found === 0) {
+            alert(`ไม่พบสลิปธนาคารใน ${files.length} รูปที่เลือกมา (AI ตรวจสอบแล้วเป็นรูปทั่วไปทั้งหมด)`);
+          }
         }
       } catch (err) {
         alert('วิเคราะห์สลิปล้มเหลว: ' + err.message);

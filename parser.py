@@ -12,6 +12,7 @@ KNOWN_SAMPLES = [
     {
         "keywords": ["ttb", "truemoney", "e9f5de62", "เติมเงิน"],
         "data": {
+            "is_slip": True,
             "bank": "ttb (ทีเอ็มบีธนชาต)",
             "transaction_type": "เติมเงิน",
             "sender_name": "นาย เสฏฐพงศ์ เลิศสกุลบรรลือ",
@@ -29,6 +30,7 @@ KNOWN_SAMPLES = [
     {
         "keywords": ["kbank", "onesiam", "a17d5b33", "จ่ายบิล", "6790"],
         "data": {
+            "is_slip": True,
             "bank": "ธนาคารกสิกรไทย (K+)",
             "transaction_type": "จ่ายบิล",
             "sender_name": "นาย เสฏฐพงศ์ เ***",
@@ -46,6 +48,7 @@ KNOWN_SAMPLES = [
     {
         "keywords": ["glo", "lottery", "54d5b8bc", "สลาก", "320"],
         "data": {
+            "is_slip": True,
             "bank": "เป๋าตัง (GLO)",
             "transaction_type": "ซื้อสลากดิจิทัล",
             "sender_name": "G Wallet",
@@ -63,6 +66,7 @@ KNOWN_SAMPLES = [
     {
         "keywords": ["krungthai", "jonessalad", "8ae3fe51", "salad", "40"],
         "data": {
+            "is_slip": True,
             "bank": "ธนาคารกรุงไทย (Krungthai NEXT)",
             "transaction_type": "จ่ายบิลร้านค้า",
             "sender_name": "นาย เสฏฐพงศ์ เ***",
@@ -84,10 +88,9 @@ def encode_image(image_path: str) -> str:
         return base64.b64encode(image_file.read()).decode("utf-8")
 
 def parse_slip_with_gemini(image_path: str, api_key: str) -> Dict[str, Any]:
-    """Call Google Gemini Vision API to analyze the slip image accurately."""
+    """Call Google Gemini Vision API to detect whether it's a slip and extract slip data."""
     base64_image = encode_image(image_path)
     
-    # Determine MIME type
     ext = os.path.splitext(image_path)[1].lower()
     mime_type = "image/jpeg"
     if ext == ".png":
@@ -95,23 +98,30 @@ def parse_slip_with_gemini(image_path: str, api_key: str) -> Dict[str, Any]:
     elif ext == ".webp":
         mime_type = "image/webp"
 
-    prompt = """คุณเป็นผู้เชี่ยวชาญการอ่านสลิปธนาคารและสลิปการชำระเงินของไทย (เช่น กสิกรไทย K+, กรุงไทย Next, ttb touch, SCB Easy, เป๋าตัง G-Wallet, TrueMoney, ShopeePay ฯลฯ)
-จงวิเคราะห์ภาพสลิปที่แนบมานี้อย่างละเอียด และตอบกลับเป็น JSON เท่านั้น โดยมีฟิลด์ดังต่อไปนี้:
-{
-  "bank": "ชื่อธนาคารหรือแอปต้นทาง เช่น ธนาคารกสิกรไทย, ธนาคารกรุงไทย, ttb, เป๋าตัง",
-  "transaction_type": "ประเภทรายการ เช่น โอนเงิน, จ่ายบิล, เติมเงิน, ซื้อสลาก, ชำระค่าสินค้า",
-  "sender_name": "ชื่อผู้โอน/ผู้ทำรายการ",
-  "sender_account": "เลขที่บัญชีต้นทาง (เช่น xxx-x-x1234-x)",
-  "receiver_name": "ชื่อผู้รับ/ร้านค้า/บริการปลายทาง",
-  "receiver_account": "เลขที่บัญชีหรือเบอร์พร้อมเพย์หรือเลขอ้างอิงปลายทาง",
-  "amount": ตัวเลขทศนิยมยอดเงินที่จ่ายจริง (ตัวเลขเท่านั้น เช่น 1000.0 หรือ 6790.0),
-  "fee": ค่าธรรมเนียม (ตัวเลข เช่น 0.0),
-  "date_time": "วันเวลาในรูปแบบมาตรฐาน YYYY-MM-DD HH:MM:SS (โปรดแปลง พ.ศ. เช่น 2569 หรือ 69 ให้เป็น ค.ศ. 2026 ให้ถูกต้อง เช่น '2026-10-24 17:30:00')",
-  "ref_id": "รหัสอ้างอิงธุรกรรม / Transaction Reference No.",
-  "category": "หมวดหมู่อัตโนมัติ โดยเลือกอันที่เหมาะสมที่สุดจาก 1 ในนี้: ['🍔 อาหารและเครื่องดื่ม', '🛒 ช้อปปิ้ง & ของใช้', '💳 ชำระบิล/บัตรเครดิต', '📲 เติมเงิน & วอลเล็ต', '🎟️ เสี่ยงโชค & บันเทิง', '🚗 เดินทาง & คมนาคม', '🏥 สุขภาพ & ยา', '🏷️ อื่นๆ']",
-  "note": "สรุปสั้นๆ เช่น ชำระค่าบัตรเครดิตวันสยาม, ซื้อสลาก 4 ใบ, เติมเงิน TrueMoney"
-}
-สำคัญมาก: ห้ามใส่คำอธิบายอื่น ให้ตอบเฉพาะ JSON Object เท่านั้น เพื่อให้ระบบ parse ได้ทันที"""
+    prompt = """คุณเป็น AI ผู้เชี่ยวชาญการตรวจสอบและอ่านสลิปธนาคารของไทย
+ภารกิจของคุณ:
+1. ตรวจสอบว่าภาพนี้คือ "สลิปธนาคาร / หลักฐานการโอนเงิน / ใบเสร็จจ่ายบิล / สลิปเติมเงิน / สลิปซื้อสลาก" ใช่หรือไม่?
+   - ถ้าไม่ใช่ (เช่น เป็นรูปถ่ายคน, รูปอาหาร, ทิวทัศน์, มีม, ภาพแคปแชตทั่วไป หรือรูปเอกสารที่ไม่ใช่สลิปการเงิน) ให้ตอบกลับเป็น JSON ดังนี้:
+     {"is_slip": false, "reason": "ไม่ใช่สลิปการเงิน (เป็นรูปภาพทั่วไป)"}
+   
+   - ถ้าใช่สลิปการเงิน ให้ตอบกลับเป็น JSON โดยมีฟิลด์ดังนี้:
+     {
+       "is_slip": true,
+       "bank": "ชื่อธนาคารหรือแอปต้นทาง เช่น กสิกรไทย, กรุงไทย, ttb, เป๋าตัง, ไทยพาณิชย์",
+       "transaction_type": "ประเภทรายการ เช่น โอนเงิน, จ่ายบิล, เติมเงิน, ซื้อสลาก, ชำระค่าสินค้า",
+       "sender_name": "ชื่อผู้โอน/ผู้ทำรายการ",
+       "sender_account": "เลขบัญชีต้นทาง (เช่น xxx-x-x1234-x)",
+       "receiver_name": "ชื่อผู้รับ/ร้านค้าปลายทาง",
+       "receiver_account": "เลขบัญชีหรือเบอร์พร้อมเพย์ปลายทาง",
+       "amount": ตัวเลขยอดเงินที่จ่ายจริง (float ตัวเลขเท่านั้น เช่น 1000.0),
+       "fee": ค่าธรรมเนียม (float เช่น 0.0),
+       "date_time": "วันเวลาในรูปแบบมาตรฐาน YYYY-MM-DD HH:MM:SS (โปรดแปลง พ.ศ. เช่น 2569 หรือ 69 ให้เป็น ค.ศ. 2026 ให้ถูกต้อง)",
+       "ref_id": "รหัสอ้างอิงธุรกรรม / Ref No.",
+       "category": "หมวดหมู่อัตโนมัติ: ['🍔 อาหารและเครื่องดื่ม', '🛒 ช้อปปิ้ง & ของใช้', '💳 ชำระบิล/บัตรเครดิต', '📲 เติมเงิน & วอลเล็ต', '🎟️ เสี่ยงโชค & บันเทิง', '🚗 เดินทาง & คมนาคม', '🏥 สุขภาพ & ยา', '🏷️ อื่นๆ']",
+       "note": "สรุปสั้นๆ ภาษาไทย"
+     }
+
+ตอบเฉพาะ JSON Object เท่านั้น ห้ามใส่ markdown หรือข้อความอื่น"""
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
     payload = {
@@ -136,10 +146,9 @@ def parse_slip_with_gemini(image_path: str, api_key: str) -> Dict[str, Any]:
 
     headers = {"Content-Type": "application/json"}
     
-    with httpx.Client(timeout=30.0) as client:
+    with httpx.Client(timeout=35.0) as client:
         response = client.post(url, json=payload, headers=headers)
         if response.status_code != 200:
-            # Fallback to gemini-1.5-flash if 2.5-flash fails
             fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
             response = client.post(fallback_url, json=payload, headers=headers)
             response.raise_for_status()
@@ -147,7 +156,6 @@ def parse_slip_with_gemini(image_path: str, api_key: str) -> Dict[str, Any]:
         data = response.json()
         text_content = data["candidates"][0]["content"]["parts"][0]["text"].strip()
         
-        # Clean json markdown backticks if any
         if text_content.startswith("```json"):
             text_content = text_content[7:]
         if text_content.startswith("```"):
@@ -159,52 +167,63 @@ def parse_slip_with_gemini(image_path: str, api_key: str) -> Dict[str, Any]:
         return result
 
 def analyze_slip(image_path: str, filename: str = "") -> Dict[str, Any]:
-    """Main slip analysis function: checks API key first, then falls back to smart matching."""
+    """Analyze slip image: detects whether it's a slip and parses details."""
     api_key = get_setting("gemini_api_key") or os.environ.get("GEMINI_API_KEY")
     
     if api_key and api_key.strip():
         try:
             parsed = parse_slip_with_gemini(image_path, api_key.strip())
-            # Ensure required numeric fields
+            is_slip = parsed.get("is_slip", True)
+            if not is_slip:
+                return {
+                    "success": True,
+                    "is_slip": False,
+                    "engine": "Gemini AI Vision",
+                    "reason": parsed.get("reason", "ไม่ใช่สลิปการเงิน")
+                }
+            
+            # Ensure numbers
             parsed["amount"] = float(parsed.get("amount", 0.0))
             parsed["fee"] = float(parsed.get("fee", 0.0))
             return {
                 "success": True,
+                "is_slip": True,
                 "engine": "Gemini AI Vision",
                 "data": parsed
             }
         except Exception as e:
             print(f"[Gemini Vision Error] {e}")
-            # If API fails, fall back to smart detection
-    
-    # Check if filename or image matches our known sample slips
+
+    # Check known sample slips
     lower_name = (filename + " " + os.path.basename(image_path)).lower()
     for sample in KNOWN_SAMPLES:
         if any(kw in lower_name for kw in sample["keywords"]):
             return {
                 "success": True,
+                "is_slip": True,
                 "engine": "Sample Pattern Matcher",
                 "data": sample["data"].copy()
             }
             
-    # Default fallback template for uploaded images without API key
+    # Fallback template
     now = datetime.now()
     default_ref = "TXN" + now.strftime("%Y%m%d%H%M%S")
     return {
         "success": True,
-        "engine": "Manual/Template (ใส่ Gemini API Key ในการตั้งค่าเพื่อเปิดระบบ AI เต็มรูปแบบ)",
+        "is_slip": True,
+        "engine": "Manual/Template (กรุณาตั้งค่า Gemini API Key เพื่อเปิดระบบคัดกรองอัตโนมัติ)",
         "data": {
-            "bank": "ธนาคาร (ตรวจจับอัตโนมัติ)",
+            "bank": "สลิปธนาคาร",
             "transaction_type": "โอนเงิน/จ่ายบิล",
             "sender_name": "",
             "sender_account": "",
-            "receiver_name": "ร้านค้า / ผู้รับเงิน",
+            "receiver_name": "ผู้รับเงิน / ร้านค้า",
             "receiver_account": "",
             "amount": 0.0,
             "fee": 0.0,
             "date_time": now.strftime("%Y-%m-%d %H:%M:%S"),
             "ref_id": default_ref,
             "category": "🍔 อาหารและเครื่องดื่ม",
-            "note": "อัปโหลดจากสลิป"
+            "note": "สแกนจากแกลเลอรี"
         }
     }
