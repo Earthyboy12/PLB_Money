@@ -92,6 +92,20 @@ def set_config(data: Dict[str, str]):
     db.set_setting("gemini_api_key", key)
     return {"status": "saved", "has_api_key": bool(key)}
 
+import io
+from PIL import Image
+
+def make_thumbnail_data_url(content: bytes) -> str:
+    """Create a lightweight ~12KB base64 JPEG thumbnail to eliminate 413 Payload Too Large."""
+    try:
+        im = Image.open(io.BytesIO(content))
+        im.thumbnail((360, 480))
+        buf = io.BytesIO()
+        im.convert("RGB").save(buf, format="JPEG", quality=65)
+        return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("utf-8")
+    except Exception:
+        return "data:image/jpeg;base64," + base64.b64encode(content[:15000]).decode("utf-8")
+
 @app.post("/api/upload-and-analyze")
 async def upload_and_analyze(files: List[UploadFile] = File(...)):
     results = []
@@ -115,16 +129,13 @@ async def upload_and_analyze(files: List[UploadFile] = File(...)):
                 continue
 
             # Determine mime type & safe extension
-            mime_type = "image/jpeg"
             ext = ".jpg"
             if content.startswith(b"\x89PNG"):
-                mime_type = "image/png"
                 ext = ".png"
             elif b"WEBP" in content[:20]:
-                mime_type = "image/webp"
                 ext = ".webp"
 
-            # Image path: write to disk if writable, otherwise use base64 data URL
+            # Image path: write to disk if writable, otherwise use lightweight thumbnail data URL (~12KB)
             image_ref = ""
             if can_save_disk:
                 unique_name = f"{uuid.uuid4().hex}{ext}"
@@ -134,11 +145,9 @@ async def upload_and_analyze(files: List[UploadFile] = File(...)):
                         f.write(content)
                     image_ref = f"/static/uploads/{unique_name}"
                 except Exception:
-                    b64_img = base64.b64encode(content).decode("utf-8")
-                    image_ref = f"data:{mime_type};base64,{b64_img}"
+                    image_ref = make_thumbnail_data_url(content)
             else:
-                b64_img = base64.b64encode(content).decode("utf-8")
-                image_ref = f"data:{mime_type};base64,{b64_img}"
+                image_ref = make_thumbnail_data_url(content)
 
             # Analyze slip in-memory directly
             filename = file.filename or "image"
