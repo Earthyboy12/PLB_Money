@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PLB Money Is King - ขั้วโลกสลิปอัจฉริยะ 🐻‍❄️❄️</title>
+  
+  <link rel="icon" type="image/png" href="/static/logo.png">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- FontAwesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Google Fonts: Prompt & Fredoka/Kanit for Cute Polar vibe -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            polar: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+              950: '#051b2c'
+            },
+            glacier: {
+              night: '#060d1a',
+              card: 'rgba(12, 26, 46, 0.72)',
+              border: 'rgba(125, 211, 252, 0.22)'
+            }
+          },
+          fontFamily: {
+            cute: ['Fredoka', 'Prompt', 'sans-serif'],
+            sans: ['Prompt', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      font-family: 'Prompt', -apple-system, sans-serif;
+      background-color: #060d1a;
+      color: #f1f5f9;
+      -webkit-tap-highlight-color: transparent;
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.16) 0%, transparent 50%),
+        radial-gradient(circle at 10% 40%, rgba(52, 211, 153, 0.1) 0%, transparent 40%),
+        radial-gradient(circle at 90% 70%, rgba(129, 140, 248, 0.12) 0%, transparent 45%);
+      background-attachment: fixed;
+    }
+    .frost-glass {
+      background: rgba(13, 27, 49, 0.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(125, 211, 252, 0.22);
+    }
+    .frost-gradient-text {
+      background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 30%, #7dd3fc 70%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .aurora-btn {
+      background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 40%, #38bdf8 100%);
+      box-shadow: 0 4px 20px -2px rgba(14, 165, 233, 0.45);
+    }
+    .aurora-btn:hover {
+      background: linear-gradient(135deg, #0369a1 0%, #0284c7 40%, #0ea5e9 100%);
+      box-shadow: 0 6px 25px -2px rgba(14, 165, 233, 0.6);
+    }
+    .frost-glow {
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.22);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #0369a1;
+      border-radius: 4px;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    .animate-float {
+      animation: float 3s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-sky-400 selection:text-slate-950">
+
+  <!-- Top Polar Arctic Header -->
+  <header class="sticky top-0 z-40 frost-glass border-b border-sky-400/20 px-4 py-2.5 sm:px-6">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+      
+      <!-- Brand Logo & Title (Earth PLB Polar Bear) -->
+      <div class="flex items-center gap-3">
+        <!-- Logo Image with Ice Ring -->
+        <div class="relative w-12 h-12 rounded-2xl p-0.5 bg-gradient-to-tr from-sky-400 via-teal-300 to-indigo-400 frost-glow shadow-md">
+          <div class="w-full h-full rounded-2xl bg-slate-900/90 overflow-hidden flex items-center justify-center">
+            <img src="/static/logo.png" alt="Earth PLB Polar Bear" class="w-full h-full object-contain p-0.5 animate-float">
+          </div>
+          <span class="absolute -top-1 -right-1 text-xs">❄️</span>
+        </div>
+
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-base sm:text-lg font-bold font-cute frost-gradient-text tracking-wide leading-none">
+              PLB MONEY IS KING
+            </h1>
+            <span class="text-sm">👑</span>
+          </div>
+          <p class="text-[11px] text-sky-200/80 tracking-wider font-light flex items-center gap-1 mt-0.5">
+            <span>🐻‍❄️</span> กระเป๋าเงินขั้วโลก & สลิปอัจฉริยะ
+          </p>
+        </div>
+      </div>
+
+      <!-- Header Action Buttons -->
+      <div class="flex items-center gap-2">
+        <!-- Open on Mobile QR button -->
+        <button onclick="openQrModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-200 bg-sky-950/60 hover:bg-sky-900/60 border border-sky-400/30 rounded-xl transition shadow-sm">
+          <i class="fa-solid fa-qrcode text-sky-400"></i>
+          <span class="hidden sm:inline">เปิดบนมือถือ</span>
+        </button>
+
+        <!-- Settings / AI Key Button -->
+        <button onclick="openSettingsModal()" id="apiKeyBtn" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-900/60 hover:bg-slate-800 border border-slate-700/60 rounded-xl transition">
+          <span id="apiKeyDot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+          <span class="hidden sm:inline">ตั้งค่า AI</span>
+          <i class="fa-solid fa-gear sm:hidden text-sky-400"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Viewport -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 py-5 sm:py-6 mb-24 sm:mb-10 space-y-5">
+    
+    <!-- Tab 1: Arctic Dashboard (สถิติขั้วโลก) -->
+    <section id="tab-dashboard" class="space-y-5">
+      
+      <!-- Polar Bear VIP Ice Card -->
+      <div class="relative overflow-hidden rounded-3xl p-6 sm:p-7 border border-sky-400/30 shadow-2xl bg-gradient-to-br from-slate-900/90 via-sky-950/70 to-slate-900/90">
+        <!-- Arctic Background Accents -->
+        <div class="absolute -right-6 -bottom-6 w-44 h-44 opacity-25 pointer-events-none">
+          <img src="/static/logo.png" alt="Watermark" class="w-full h-full object-contain filter drop-shadow">
+        </div>
+        <div class="absolute -top-12 -right-12 w-48 h-48 bg-sky-400/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-10 -left-10 w-48 h-48 bg-emerald-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 flex flex-col justify-between space-y-4">
+          <!-- Top Row: Polar Card Badge -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-bold text-sky-300 tracking-wider flex items-center gap-1.5">
+                <span>❄️</span> EARTH PLB POLAR VAULT
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-400/20 text-sky-200 border border-sky-400/30 font-mono">
+                ARCTIC VIP
+              </span>
+            </div>
+            <div class="text-xl">
+              🐻‍❄️👑
+            </div>
+          </div>
+
+          <!-- Middle Row: Grand Total Amount -->
+          <div>
+            <span class="text-xs text-sky-300/80 font-medium tracking-wider block mb-1">
+              ยอดใช้จ่ายย้อนหลังสะสม
+            </span>
+            <div class="flex items-baseline gap-2">
+              <span class="text-3xl sm:text-5xl font-extrabold font-cute frost-gradient-text tracking-tight" id="kpiTotalAmount">
+                ฿0.00
+              </span>
+              <span class="text-xs text-sky-300 font-mono uppercase">THB</span>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Quick Metrics -->
+          <div class="pt-3 border-t border-sky-400/20 flex flex-wrap items-center justify-between gap-3 text-xs">
+            <div class="flex items-center gap-4">
+              <div>
+                <span class="text-[10px] text-slate-400 block">สลิปที่บันทึก</span>
+                <span class="text-sm font-bold text-sky-100 font-mono" id="kpiTotalCount">0 รายการ</span>
+              </div>
+              <div class="h-6 w-px bg-slate-700/60"></div>
+              <div>
+                <span class="text-[10px] text-slate-400 block">เฉลี่ย / สลิป</span>
+                <span class="text-sm font-bold text-sky-200 font-mono" id="kpiAvgAmount">฿0.00</span>
+              </div>
+            </div>
+
+            <div class="text-right">
+              <span class="text-[10px] text-slate-400 block">หมวดที่มีการใช้จ่ายสูงสุด</span>
+              <span class="text-xs font-bold text-amber-300" id="kpiTopCategory">-</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Seed Banner if needed -->
+      <div id="seedBanner" class="hidden frost-glass rounded-2xl p-4 border border-sky-400/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-300 flex items-center justify-center text-xl shrink-0">
+            ❄️
+          </div>
+          <div>
+            <h3 class="font-bold text-sm text-sky-100 flex items-center gap-1.5">
+              เริ่มต้นด้วย 4 สลิปจริงของคุณ
+            </h3>
+            <p class="text-xs text-slate-400">ttb, K+, เป๋าตัง GLO และ Krungthai (ยอดรวม ฿8,150.00)</p>
+          </div>
+        </div>
+        <button onclick="seedSampleData()" class="px-4 py-2 aurora-btn text-white font-bold text-xs rounded-xl shadow-lg transition shrink-0">
+          โหลด 4 สลิปตัวอย่าง
+        </button>
+      </div>
+
+      <!-- Charts Section: Polar Dark Mode Charts -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Donut Chart: By Category -->
+        <div class="frost-glass p-5 rounded-3xl border border-sky-400/20 shadow-xl flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-sky-400/15 text-sky-300 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-chart-pie"></i>
+              </div>
+              <h3 class="font-bold text-sm text-sky-100">สัดส่วนค่าใช้จ่ายตามหมวดหมู่</h3>
+            </div>
+            <span class="text-[10px] text-sky-400/80 font-mono uppercase tracking-wider">🧊 BREAKDOWN</span>
+          </div>
+          <div class="flex-1 flex items-center justify-center min-h-[240px] relative">
+            <canvas id="categoryChart"></canvas>
+            <div id="noCategoryData" class="hidden absolute text-xs text-slate-500">ไม่มีข้อมูลสลิป</div>
+          </div>
+        </div>
+
+        <!-- Bar Chart: Daily Timeline -->
+        <div class="frost-glass p-5 rounded-3xl border border-sky-400/20 shadow-xl flex flex-col">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-sky-400/15 text-sky-300 flex items-center justify-center text-xs">
+                <i class="fa-solid fa-chart-simple"></i>
+              </div>
+              <h3 class="font-bold text-sm text-sky-100">ประวัติค่าใช้จ่ายรายวัน</h3>
+            </div>
+            <span class="text-[10px] text-sky-400/80 font-mono uppercase tracking-wider">📈 TIMELINE</span>
+          </div>
+          <div class="flex-1 flex items-center justify-center min-h-[240px] relative">
+            <canvas id="timelineChart"></canvas>
+            <div id="noTimelineData" class="hidden absolute text-xs text-slate-500">ไม่มีข้อมูลสลิป</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Category Breakdown List & Top Receivers -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Breakdown by Category list -->
+        <div class="frost-glass p-5 rounded-3xl border border-sky-400/20 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-xs uppercase tracking-wider text-sky-200 flex items-center gap-2">
+              <i class="fa-solid fa-layer-group text-sky-400"></i> แยกตามหมวดหมู่ค่าใช้จ่าย
+            </h3>
+          </div>
+          <div id="categoryListContainer" class="space-y-2.5 max-h-64 overflow-y-auto custom-scrollbar">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Top Receivers / Merchants -->
+        <div class="frost-glass p-5 rounded-3xl border border-sky-400/20 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-xs uppercase tracking-wider text-sky-200 flex items-center gap-2">
+              <i class="fa-solid fa-store text-emerald-400"></i> ร้านค้า / บริการที่มียอดสูงสุด
+            </h3>
+          </div>
+          <div id="topReceiversContainer" class="space-y-2.5 max-h-64 overflow-y-auto custom-scrollbar">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Tab 2: Scan / Upload Slips (อัปโหลดและวิเคราะห์สลิป) -->
+    <section id="tab-scan" class="hidden space-y-4">
+      <!-- Polar Bear Scanner Dropzone -->
+      <div class="relative overflow-hidden frost-glass p-7 rounded-3xl border-2 border-dashed border-sky-400/40 hover:border-sky-300 transition text-center group cursor-pointer">
+        <input type="file" id="slipFileInput" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
+        
+        <div class="relative z-0 flex flex-col items-center justify-center py-3">
+          <!-- Mascot Icon -->
+          <div class="w-20 h-20 rounded-2xl bg-slate-900/80 border border-sky-400/40 p-1 mb-3 frost-glow shadow-xl group-hover:scale-105 transition">
+            <img src="/static/logo.png" alt="Bear Mascot" class="w-full h-full object-contain">
+          </div>
+          <h3 class="font-bold text-base text-sky-100 font-cute tracking-wide mb-1">
+            แตะเพื่อถ่ายรูป หรือ เลือกรูปสลิปจากอัลบั้ม
+          </h3>
+          <p class="text-xs text-slate-400 max-w-sm mb-4 leading-relaxed">
+            เลือกได้หลายสลิปพร้อมกัน AI ขั้วโลกจะช่วยอ่านยอดเงิน ธนาคาร วันที่ และจัดหมวดหมู่อัตโนมัติ ❄️
+          </p>
+          <div class="flex flex-wrap items-center justify-center gap-2.5">
+            <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl aurora-btn text-white text-xs font-bold shadow-md">
+              <i class="fa-solid fa-images"></i> เลือกภาพสลิปในมือถือ
+            </span>
+            <button type="button" onclick="loadSampleIntoScanner()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900/80 text-sky-300 hover:bg-sky-950/60 border border-sky-400/30 text-xs font-medium transition z-20">
+              <i class="fa-solid fa-vial"></i> ลองสแกน 4 สลิปตัวอย่าง
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analyzing Spinner -->
+      <div id="analysisLoading" class="hidden frost-glass p-7 rounded-3xl border border-sky-400/30 shadow-2xl text-center space-y-3">
+        <div class="inline-block relative">
+          <div class="w-12 h-12 rounded-full border-2 border-sky-400/20 border-t-sky-400 animate-spin"></div>
+          <div class="absolute inset-0 flex items-center justify-center text-lg">
+            🐻‍❄️
+          </div>
+        </div>
+        <h4 class="font-bold text-sm text-sky-100 font-cute">AI หมีขั้วโลกกำลังอ่านสลิป...</h4>
+        <p class="text-xs text-slate-400" id="loadingStatusText">กำลังดึงยอดเงิน วันที่ ธนาคาร และจัดหมวดหมู่อัตโนมัติ</p>
+      </div>
+
+      <!-- Scanned Slips Queue / Edit before save -->
+      <div id="scannedCardsContainer" class="space-y-3">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- Action Button: Save All to DB -->
+      <div id="saveAllBar" class="hidden sticky bottom-24 sm:bottom-8 z-30 frost-glass p-4 rounded-2xl border border-sky-400/40 shadow-2xl flex items-center justify-between gap-3">
+        <div>
+          <span class="text-[10px] text-slate-400 uppercase tracking-wider block">สลิปที่พร้อมบันทึก</span>
+          <div class="text-sm font-bold text-sky-300 font-mono" id="readyCountText">0 รายการ</div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="clearScannedList()" class="px-3.5 py-2 text-xs text-slate-400 hover:text-white rounded-xl transition">
+            ยกเลิก
+          </button>
+          <button onclick="saveAllScanned()" class="px-5 py-2.5 aurora-btn text-white text-xs font-bold rounded-xl shadow-lg hover:brightness-110 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-check"></i> บันทึกเข้าบัญชีทั้งหมด
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Transactions History (ประวัติรายการสลิป) -->
+    <section id="tab-history" class="hidden space-y-4">
+      <!-- Search & Filters -->
+      <div class="frost-glass p-4 rounded-2xl border border-sky-400/20 shadow-lg space-y-3">
+        <!-- Search Input -->
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-sky-400/60 text-xs"></i>
+          <input type="text" id="searchInput" oninput="debounceSearch()" placeholder="ค้นหาชื่อผู้รับ, ร้านค้า, เลขอ้างอิง..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-900/90 border border-sky-400/25 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-400 transition">
+        </div>
+
+        <!-- Filter Pills -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs custom-scrollbar">
+          <button onclick="filterCategory('ทั้งหมด')" class="cat-pill active px-3.5 py-1.5 rounded-lg aurora-btn text-white font-bold whitespace-nowrap transition">
+            ทั้งหมด
+          </button>
+          <button onclick="filterCategory('🍔 อาหารและเครื่องดื่ม')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+            🍔 อาหาร
+          </button>
+          <button onclick="filterCategory('💳 ชำระบิล/บัตรเครดิต')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+            💳 บัตร/บิล
+          </button>
+          <button onclick="filterCategory('📲 เติมเงิน & วอลเล็ต')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+            📲 เติมเงิน
+          </button>
+          <button onclick="filterCategory('🎟️ เสี่ยงโชค & บันเทิง')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+            🎟️ เสี่ยงโชค
+          </button>
+          <button onclick="filterCategory('🛒 ช้อปปิ้ง & ของใช้')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+            🛒 ช้อปปิ้ง
+          </button>
+        </div>
+      </div>
+
+      <!-- Transaction List -->
+      <div id="transactionsList" class="space-y-2.5">
+        <!-- Rendered by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Luxury Floating Bottom Navigation Bar (Mobile-First) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 frost-glass border-t border-sky-400/20 pb-safe">
+    <div class="max-w-md mx-auto grid grid-cols-3 py-2 px-3">
+      <!-- Nav Item 1: Dashboard -->
+      <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center py-1 text-sky-400 transition">
+        <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
+        <span class="text-[10px] font-bold tracking-wider">สถิติ</span>
+      </button>
+
+      <!-- Nav Item 2: Scan (Center Mascot Button) -->
+      <button onclick="switchTab('scan')" id="nav-scan" class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-sky-300 transition">
+        <div class="relative">
+          <div class="w-12 h-12 -mt-5 rounded-2xl aurora-btn text-white flex items-center justify-center text-xl frost-glow shadow-xl">
+            <span class="text-lg">🐻‍❄️</span>
+          </div>
+        </div>
+        <span class="text-[10px] font-bold tracking-wider mt-1">สแกนสลิป</span>
+      </button>
+
+      <!-- Nav Item 3: History -->
+      <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-sky-300 transition">
+        <i class="fa-solid fa-clock-rotate-left text-lg mb-0.5"></i>
+        <span class="text-[10px] font-bold tracking-wider">ประวัติ</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Modal 1: Slip Image View Modal -->
+  <div id="imageModal" class="hidden fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4" onclick="closeImageModal()">
+    <div class="max-w-md w-full frost-glass rounded-3xl overflow-hidden border border-sky-400/30 shadow-2xl relative" onclick="event.stopPropagation()">
+      <div class="p-3.5 bg-slate-900 border-b border-sky-400/20 text-sky-200 flex items-center justify-between">
+        <span class="text-xs font-bold tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-receipt text-sky-400"></i> ภาพสลิปต้นฉบับ
+        </span>
+        <button onclick="closeImageModal()" class="text-slate-400 hover:text-white text-base">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="p-3 bg-black flex items-center justify-center max-h-[75vh] overflow-auto">
+        <img id="modalImageSrc" src="" alt="Slip" class="rounded-xl object-contain max-h-[70vh] w-auto shadow-2xl">
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: QR Code Connect Modal for Mobile -->
+  <div id="qrModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="max-w-sm w-full frost-glass rounded-3xl p-6 text-center border border-sky-400/30 shadow-2xl space-y-4">
+      <div class="w-14 h-14 rounded-2xl bg-slate-900 border border-sky-400/40 mx-auto p-1 frost-glow shadow-lg flex items-center justify-center">
+        <img src="/static/logo.png" alt="Bear Mascot" class="w-full h-full object-contain">
+      </div>
+      <div>
+        <h3 class="font-bold text-sky-100 font-cute text-base tracking-wide">PLB ARCTIC MOBILE ACCESS</h3>
+        <p class="text-xs text-slate-400 mt-1">ใช้กล้องโทรศัพท์ (ที่ต่อ Wi-Fi เดียวกัน) ส่องสแกนเพื่อเปิดใช้งาน</p>
+      </div>
+
+      <div class="bg-white p-3 rounded-2xl inline-block shadow-xl border-4 border-sky-400/40">
+        <img id="qrCodeImage" src="" alt="Scan QR Code" class="w-48 h-48 mx-auto rounded-lg">
+      </div>
+
+      <div class="bg-slate-900 p-2.5 rounded-xl text-xs text-sky-300 font-mono select-all break-all border border-sky-400/20" id="mobileUrlText">
+        http://192.168.1.221:8000
+      </div>
+
+      <button onclick="closeQrModal()" class="w-full py-2.5 bg-slate-900 hover:bg-sky-950/60 text-sky-200 border border-sky-400/30 text-xs font-bold rounded-xl transition">
+        ปิดหน้าต่าง
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal 3: Settings & Gemini API Key Modal -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="max-w-md w-full frost-glass rounded-3xl p-6 border border-sky-400/30 shadow-2xl space-y-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl aurora-btn text-white flex items-center justify-center text-sm font-bold shadow-md">
+            <i class="fa-solid fa-microchip"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sky-100 font-cute text-sm tracking-wide">AI VISION ENGINE CONFIG</h3>
+            <p class="text-xs text-slate-400">Google Gemini Multimodal API</p>
+          </div>
+        </div>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-200">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3 text-xs text-slate-300">
+        <p>
+          ระบบวิเคราะห์สลิปธนาคารไทย (กสิกร, กรุงไทย, ttb, เป๋าตัง ฯลฯ) พร้อมแปลงวันที่ พ.ศ. และแยกหมวดหมู่อัตโนมัติ
+        </p>
+
+        <div class="space-y-1.5">
+          <label class="font-bold text-sky-200 block font-mono text-[11px] uppercase tracking-wider">GEMINI API KEY:</label>
+          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full p-2.5 bg-slate-900 border border-sky-400/20 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-400 font-mono text-xs text-sky-100">
+          <p class="text-[11px] text-slate-400">
+            ขอรับ API Key ฟรีได้ที่ <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-sky-400 underline hover:text-sky-300">Google AI Studio</a>
+          </p>
+        </div>
+
+        <div class="p-3 bg-sky-950/40 rounded-xl border border-sky-400/30 text-sky-200 text-[11px] leading-relaxed">
+          <span>🐻‍❄️❄️</span> ระบบมี <strong>4 สลิปตัวอย่างจริงของคุณ</strong> โหลดพร้อมใช้งานและคำนวณสถิติได้ทันที
+        </div>
+      </div>
+
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button onclick="closeSettingsModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white rounded-xl transition">
+          ยกเลิก
+        </button>
+        <button onclick="saveApiKey()" class="px-5 py-2 aurora-btn text-white font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition">
+          บันทึกการตั้งค่า
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    let categoryChartInstance = null;
+    let timelineChartInstance = null;
+    let scannedItems = [];
+    let currentCategoryFilter = 'ทั้งหมด';
+    let searchTimeout = null;
+
+    // Categories list for dropdown
+    const CATEGORIES = [
+      '🍔 อาหารและเครื่องดื่ม',
+      '💳 ชำระบิล/บัตรเครดิต',
+      '📲 เติมเงิน & วอลเล็ต',
+      '🎟️ เสี่ยงโชค & บันเทิง',
+      '🛒 ช้อปปิ้ง & ของใช้',
+      '🚗 เดินทาง & คมนาคม',
+      '🏥 สุขภาพ & ยา',
+      '🏷️ อื่นๆ'
+    ];
+
+    // Bank color mapping in polar arctic theme
+    const BANK_COLORS = {
+      'กสิกร': 'border-emerald-400/40 text-emerald-300 bg-emerald-950/50',
+      'kbank': 'border-emerald-400/40 text-emerald-300 bg-emerald-950/50',
+      'กรุงไทย': 'border-sky-400/40 text-sky-300 bg-sky-950/50',
+      'krungthai': 'border-sky-400/40 text-sky-300 bg-sky-950/50',
+      'ttb': 'border-blue-400/40 text-blue-300 bg-blue-950/50',
+      'เป๋าตัง': 'border-cyan-400/40 text-cyan-300 bg-cyan-950/50',
+      'glo': 'border-cyan-400/40 text-cyan-300 bg-cyan-950/50',
+      'ไทยพาณิชย์': 'border-purple-400/40 text-purple-300 bg-purple-950/50',
+      'scb': 'border-purple-400/40 text-purple-300 bg-purple-950/50',
+      'กรุงเทพ': 'border-indigo-400/40 text-indigo-300 bg-indigo-950/50',
+      'bbl': 'border-indigo-400/40 text-indigo-300 bg-indigo-950/50'
+    };
+
+    function getBankBadgeClass(bankName) {
+      if (!bankName) return 'border-sky-400/30 text-sky-200 bg-sky-950/40';
+      const lower = bankName.toLowerCase();
+      for (const [k, v] of Object.entries(BANK_COLORS)) {
+        if (lower.includes(k)) return v;
+      }
+      return 'border-sky-400/30 text-sky-200 bg-sky-950/40';
+    }
+
+    // Initialize App
+    document.addEventListener('DOMContentLoaded', () => {
+      fetchServerInfo();
+      fetchConfig();
+      loadDashboard();
+      loadTransactions();
+    });
+
+    // Navigation Switcher
+    function switchTab(tab) {
+      ['dashboard', 'scan', 'history'].forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const navBtn = document.getElementById(`nav-${t}`);
+        navBtn.classList.remove('text-sky-400');
+        navBtn.classList.add('text-slate-400');
+      });
+
+      document.getElementById(`tab-${tab}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${tab}`);
+      activeNav.classList.remove('text-slate-400');
+      activeNav.classList.add('text-sky-400');
+
+      if (tab === 'dashboard') {
+        loadDashboard();
+      } else if (tab === 'history') {
+        loadTransactions();
+      }
+    }
+
+    // Server Info & Mobile QR Code
+    async function fetchServerInfo() {
+      try {
+        const res = await fetch('/api/server-info');
+        const data = await res.json();
+        document.getElementById('mobileUrlText').innerText = data.mobile_url;
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(data.mobile_url)}`;
+        document.getElementById('qrCodeImage').src = qrUrl;
+      } catch (e) {
+        console.error('Error fetching server info', e);
+      }
+    }
+
+    function openQrModal() {
+      document.getElementById('qrModal').classList.remove('hidden');
+    }
+    function closeQrModal() {
+      document.getElementById('qrModal').classList.add('hidden');
+    }
+
+    // Config & API Key
+    async function fetchConfig() {
+      try {
+        const res = await fetch('/api/config');
+        const data = await res.json();
+        const dot = document.getElementById('apiKeyDot');
+        if (data.has_api_key) {
+          dot.classList.remove('bg-amber-400', 'animate-pulse');
+          dot.classList.add('bg-emerald-400');
+          dot.title = `AI ทำงานแล้ว (${data.masked_key})`;
+        } else {
+          dot.classList.add('bg-amber-400', 'animate-pulse');
+          dot.classList.remove('bg-emerald-400');
+          dot.title = 'ยังไม่ได้ตั้งค่า API Key (ใช้โหมดตัวอย่าง VIP)';
+        }
+      } catch (e) {
+        console.error('Config fetch failed', e);
+      }
+    }
+
+    function openSettingsModal() {
+      document.getElementById('settingsModal').classList.remove('hidden');
+    }
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').classList.add('hidden');
+    }
+
+    async function saveApiKey() {
+      const key = document.getElementById('geminiApiKeyInput').value.trim();
+      try {
+        const res = await fetch('/api/config', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({gemini_api_key: key})
+        });
+        const data = await res.json();
+        closeSettingsModal();
+        fetchConfig();
+        alert('✨ บันทึกการตั้งค่า AI สำเร็จ!');
+      } catch (e) {
+        alert('เกิดข้อผิดพลาดในการบันทึก');
+      }
+    }
+
+    // Load Dashboard Stats
+    async function loadDashboard() {
+      try {
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+
+        // Update KPIs
+        document.getElementById('kpiTotalAmount').innerText = `฿${data.total_amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+        document.getElementById('kpiTotalCount').innerText = `${data.total_count} รายการ`;
+        document.getElementById('kpiAvgAmount').innerText = `฿${data.avg_amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+
+        // Top Category
+        if (data.categories && data.categories.length > 0) {
+          const top = data.categories[0];
+          document.getElementById('kpiTopCategory').innerText = `${top.category} (฿${top.total.toLocaleString('th-TH')})`;
+          document.getElementById('seedBanner').classList.add('hidden');
+        } else {
+          document.getElementById('kpiTopCategory').innerText = '-';
+          document.getElementById('seedBanner').classList.remove('hidden');
+        }
+
+        renderCategoryChart(data.categories);
+        renderTimelineChart(data.daily);
+        renderCategoryList(data.categories, data.total_amount);
+        renderTopReceivers(data.top_receivers);
+      } catch (e) {
+        console.error('Error loading dashboard stats', e);
+      }
+    }
+
+    // Render Polar Arctic Dark Charts
+    function renderCategoryChart(categories) {
+      const ctx = document.getElementById('categoryChart').getContext('2d');
+      const noData = document.getElementById('noCategoryData');
+
+      if (!categories || categories.length === 0) {
+        noData.classList.remove('hidden');
+        if (categoryChartInstance) categoryChartInstance.destroy();
+        return;
+      }
+      noData.classList.add('hidden');
+
+      const labels = categories.map(c => c.category);
+      const values = categories.map(c => c.total);
+      // Arctic palette: Glacier Blue, Aurora Mint, Soft Violet, Pale Amber, Ice Pink, Teal
+      const palette = ['#38bdf8', '#34d399', '#a78bfa', '#fde047', '#fb7185', '#2dd4bf', '#94a3b8'];
+
+      if (categoryChartInstance) categoryChartInstance.destroy();
+
+      categoryChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: palette.slice(0, values.length),
+            borderWidth: 2,
+            borderColor: '#060d1a'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 10,
+                color: '#bae6fd',
+                font: { family: 'Prompt', size: 10 }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  return ` ${ctx.label}: ฿${ctx.raw.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+                }
+              }
+            }
+          },
+          cutout: '68%'
+        }
+      });
+    }
+
+    function renderTimelineChart(daily) {
+      const ctx = document.getElementById('timelineChart').getContext('2d');
+      const noData = document.getElementById('noTimelineData');
+
+      if (!daily || daily.length === 0) {
+        noData.classList.remove('hidden');
+        if (timelineChartInstance) timelineChartInstance.destroy();
+        return;
+      }
+      noData.classList.add('hidden');
+
+      const labels = daily.map(d => d.day);
+      const values = daily.map(d => d.total);
+
+      if (timelineChartInstance) timelineChartInstance.destroy();
+
+      timelineChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'ยอดใช้จ่าย (บาท)',
+            data: values,
+            backgroundColor: '#38bdf8',
+            borderRadius: 8
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: '#7dd3fc',
+                font: { family: 'Prompt', size: 10 },
+                callback: v => `฿${v}`
+              },
+              grid: { color: 'rgba(56, 189, 248, 0.08)' }
+            },
+            x: {
+              ticks: { color: '#7dd3fc', font: { family: 'Prompt', size: 10 } },
+              grid: { display: false }
+            }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => ` ยอดใช้จ่าย: ฿${ctx.raw.toLocaleString('th-TH', {minimumFractionDigits: 2})}`
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function renderCategoryList(categories, totalAmount) {
+      const container = document.getElementById('categoryListContainer');
+      if (!categories || categories.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-500 py-3 text-center">ไม่มีข้อมูลหมวดหมู่</p>';
+        return;
+      }
+
+      container.innerHTML = categories.map(c => {
+        const percent = totalAmount > 0 ? ((c.total / totalAmount) * 100).toFixed(1) : 0;
+        return `
+          <div class="p-3 rounded-2xl bg-slate-900/90 border border-sky-400/20 flex items-center justify-between">
+            <div class="min-w-0 pr-2">
+              <div class="font-semibold text-xs text-sky-100 truncate">${c.category}</div>
+              <div class="text-[10px] text-slate-400">${c.count} รายการ (${percent}%)</div>
+            </div>
+            <div class="text-xs font-bold text-sky-300 font-mono shrink-0">
+              ฿${c.total.toLocaleString('th-TH', {minimumFractionDigits: 2})}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderTopReceivers(receivers) {
+      const container = document.getElementById('topReceiversContainer');
+      if (!receivers || receivers.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-500 py-3 text-center">ไม่มีข้อมูลร้านค้า</p>';
+        return;
+      }
+
+      container.innerHTML = receivers.map((r, idx) => `
+        <div class="p-3 rounded-2xl bg-slate-900/90 border border-sky-400/20 flex items-center justify-between">
+          <div class="flex items-center gap-2.5 min-w-0 pr-2">
+            <span class="w-5 h-5 rounded-full aurora-btn text-white font-bold text-[10px] flex items-center justify-center shrink-0">
+              ${idx + 1}
+            </span>
+            <div class="truncate">
+              <div class="font-semibold text-xs text-slate-100 truncate">${r.receiver_name || 'ไม่ระบุผู้รับ'}</div>
+              <div class="text-[10px] text-slate-400">${r.count} รายการ</div>
+            </div>
+          </div>
+          <div class="text-xs font-bold text-sky-300 font-mono shrink-0">
+            ฿${r.total.toLocaleString('th-TH', {minimumFractionDigits: 2})}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Seed Sample Data (The 4 user slips)
+    async function seedSampleData() {
+      try {
+        const res = await fetch('/api/seed-samples', {method: 'POST'});
+        const data = await res.json();
+        alert('🐻‍❄️ นำเข้า 4 สลิปตัวอย่างเรียบร้อยแล้ว!');
+        loadDashboard();
+        loadTransactions();
+      } catch (e) {
+        alert('เกิดข้อผิดพลาดในการโหลดตัวอย่าง');
+      }
+    }
+
+    // Scan & Upload Flow
+    async function handleFileSelect(e) {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+      await uploadAndAnalyzeFiles(files);
+      e.target.value = '';
+    }
+
+    async function loadSampleIntoScanner() {
+      document.getElementById('analysisLoading').classList.remove('hidden');
+      document.getElementById('loadingStatusText').innerText = 'กำลังโหลด 4 สลิปตัวอย่างเข้าสู่ระบบสแกน...';
+
+      try {
+        const samples = [
+          { name: 'ttb_truemoney_1000.jpg', path: '/static/samples/ttb_truemoney_1000.jpg' },
+          { name: 'kbank_onesiam_6790.jpg', path: '/static/samples/kbank_onesiam_6790.jpg' },
+          { name: 'glo_lottery_320.jpg', path: '/static/samples/glo_lottery_320.jpg' },
+          { name: 'krungthai_jonessalad_40.jpg', path: '/static/samples/krungthai_jonessalad_40.jpg' }
+        ];
+
+        const formData = new FormData();
+        for (const s of samples) {
+          const res = await fetch(s.path);
+          const blob = await res.blob();
+          formData.append('files', blob, s.name);
+        }
+
+        const res = await fetch('/api/upload-and-analyze', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          scannedItems = data.items;
+          renderScannedCards();
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาด: ' + err.message);
+      } finally {
+        document.getElementById('analysisLoading').classList.add('hidden');
+      }
+    }
+
+    async function uploadAndAnalyzeFiles(files) {
+      document.getElementById('analysisLoading').classList.remove('hidden');
+      document.getElementById('loadingStatusText').innerText = `กำลังวิเคราะห์ ${files.length} สลิปด้วย AI...`;
+
+      const formData = new FormData();
+      for (let i = 0; i < files.length; i++) {
+        formData.append('files', files[i]);
+      }
+
+      try {
+        const res = await fetch('/api/upload-and-analyze', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          scannedItems = [...data.items, ...scannedItems];
+          renderScannedCards();
+        }
+      } catch (err) {
+        alert('วิเคราะห์สลิปล้มเหลว: ' + err.message);
+      } finally {
+        document.getElementById('analysisLoading').classList.add('hidden');
+      }
+    }
+
+    function renderScannedCards() {
+      const container = document.getElementById('scannedCardsContainer');
+      const saveBar = document.getElementById('saveAllBar');
+
+      if (scannedItems.length === 0) {
+        container.innerHTML = '';
+        saveBar.classList.add('hidden');
+        return;
+      }
+
+      saveBar.classList.remove('hidden');
+      document.getElementById('readyCountText').innerText = `${scannedItems.length} รายการ`;
+
+      container.innerHTML = scannedItems.map((item, index) => {
+        const badgeClass = getBankBadgeClass(item.bank);
+        return `
+          <div class="frost-glass p-5 rounded-3xl border border-sky-400/25 shadow-xl space-y-3.5">
+            <div class="flex items-start justify-between gap-2 border-b border-sky-400/15 pb-3">
+              <div class="flex items-center gap-2 min-w-0">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
+                  ${item.bank || 'ไม่ระบุธนาคาร'}
+                </span>
+                <span class="text-xs text-sky-200 font-medium truncate">
+                  ${item.transaction_type || 'รายการชำระ'}
+                </span>
+              </div>
+              <div class="flex items-center gap-1">
+                <button onclick="viewSlipImage('${item.image_path}')" class="p-1.5 text-sky-400 hover:text-white text-xs" title="ดูรูปสลิป">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button onclick="removeScannedItem(${index})" class="p-1.5 text-slate-500 hover:text-rose-400 text-xs" title="ลบรายการนี้">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Fields row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block font-medium text-sky-200/80 mb-1">ยอดเงิน (บาท):</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2 text-sky-400 font-bold font-mono">฿</span>
+                  <input type="number" step="0.01" value="${item.amount || 0}" onchange="updateScannedField(${index}, 'amount', parseFloat(this.value))" class="w-full pl-7 pr-3 py-1.5 bg-slate-900 border border-sky-400/30 rounded-xl font-bold font-mono text-sky-100 focus:outline-none focus:ring-1 focus:ring-sky-400">
+                </div>
+              </div>
+
+              <div>
+                <label class="block font-medium text-sky-200/80 mb-1">หมวดหมู่:</label>
+                <select onchange="updateScannedField(${index}, 'category', this.value)" class="w-full p-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
+                  ${CATEGORIES.map(cat => `<option value="${cat}" ${item.category === cat ? 'selected' : ''}>${cat}</option>`).join('')}
+                </select>
+              </div>
+
+              <div>
+                <label class="block font-medium text-sky-200/80 mb-1">ผู้รับ / ร้านค้า:</label>
+                <input type="text" value="${item.receiver_name || ''}" onchange="updateScannedField(${index}, 'receiver_name', this.value)" class="w-full px-3 py-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
+              </div>
+
+              <div>
+                <label class="block font-medium text-sky-200/80 mb-1">วันและเวลา:</label>
+                <input type="text" value="${item.date_time || ''}" onchange="updateScannedField(${index}, 'date_time', this.value)" placeholder="YYYY-MM-DD HH:MM:SS" class="w-full px-3 py-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
+              </div>
+            </div>
+
+            <!-- Notes & Ref ID -->
+            <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1">
+              <span class="font-mono">Ref: ${item.ref_id || '-'}</span>
+              <span class="text-sky-300 bg-sky-950/40 border border-sky-400/20 px-2 py-0.5 rounded-full font-mono">${item.engine || 'AI'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateScannedField(index, field, value) {
+      if (scannedItems[index]) {
+        scannedItems[index][field] = value;
+      }
+    }
+
+    function removeScannedItem(index) {
+      scannedItems.splice(index, 1);
+      renderScannedCards();
+    }
+
+    function clearScannedList() {
+      scannedItems = [];
+      renderScannedCards();
+    }
+
+    async function saveAllScanned() {
+      if (scannedItems.length === 0) return;
+
+      try {
+        const res = await fetch('/api/save-batch-transactions', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(scannedItems)
+        });
+        const data = await res.json();
+        if (data.status === 'success') {
+          alert(`❄️ บันทึกข้อมูลสำเร็จ ${data.count} รายการ!`);
+          scannedItems = [];
+          renderScannedCards();
+          switchTab('history');
+        }
+      } catch (err) {
+        alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+      }
+    }
+
+    // Transactions History Flow
+    async function loadTransactions() {
+      const search = document.getElementById('searchInput').value.trim();
+      let url = `/api/transactions?`;
+      if (currentCategoryFilter !== 'ทั้งหมด') {
+        url += `category=${encodeURIComponent(currentCategoryFilter)}&`;
+      }
+      if (search) {
+        url += `search=${encodeURIComponent(search)}&`;
+      }
+
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        renderTransactionsList(data.transactions);
+      } catch (e) {
+        console.error('Error fetching transactions', e);
+      }
+    }
+
+    function renderTransactionsList(list) {
+      const container = document.getElementById('transactionsList');
+      if (!list || list.length === 0) {
+        container.innerHTML = `
+          <div class="frost-glass p-8 rounded-3xl border border-sky-400/20 text-center space-y-3">
+            <div class="w-16 h-16 mx-auto flex items-center justify-center">
+              <img src="/static/logo.png" alt="Bear Mascot" class="w-full h-full object-contain">
+            </div>
+            <p class="text-sm font-bold text-sky-100">ยังไม่พบรายการสลิป</p>
+            <p class="text-xs text-slate-400">กดแท็บ "สแกนสลิป" เพื่ออัปโหลด หรือกดโหลดข้อมูล 4 สลิปตัวอย่าง</p>
+            <button onclick="seedSampleData()" class="mt-2 px-4 py-2 aurora-btn text-white font-bold rounded-xl text-xs shadow-md transition">
+              โหลด 4 สลิปตัวอย่างของคุณ
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(tx => {
+        const badgeClass = getBankBadgeClass(tx.bank);
+        return `
+          <div class="frost-glass p-4 rounded-2xl border border-sky-400/20 shadow-lg hover:border-sky-400/40 transition flex items-center justify-between gap-3">
+            <!-- Left Info -->
+            <div class="flex items-center gap-3 min-w-0">
+              <!-- Slip thumbnail -->
+              <div onclick="viewSlipImage('${tx.image_path}')" class="w-12 h-12 rounded-xl bg-black overflow-hidden cursor-pointer shrink-0 border border-sky-400/30 flex items-center justify-center relative group">
+                ${tx.image_path ? `
+                  <img src="${tx.image_path}" alt="Slip" class="w-full h-full object-cover">
+                  <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-sky-300 text-xs transition">
+                    <i class="fa-solid fa-eye"></i>
+                  </div>
+                ` : `
+                  <i class="fa-solid fa-receipt text-sky-400/40 text-lg"></i>
+                `}
+              </div>
+
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 mb-0.5">
+                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border ${badgeClass}">
+                    ${tx.bank}
+                  </span>
+                  <span class="text-[10px] text-slate-400 font-mono truncate">${tx.date_time || ''}</span>
+                </div>
+                <div class="font-bold text-xs sm:text-sm text-slate-100 truncate">
+                  ${tx.receiver_name || 'ไม่ระบุผู้รับ'}
+                </div>
+                <div class="text-[10px] text-sky-300/70 flex items-center gap-2">
+                  <span>${tx.category}</span>
+                  ${tx.note ? `<span class="text-slate-600">•</span><span class="truncate text-slate-400">${tx.note}</span>` : ''}
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Amount & Delete -->
+            <div class="flex items-center gap-3 shrink-0 text-right">
+              <div>
+                <div class="text-sm sm:text-base font-extrabold frost-gradient-text font-mono">
+                  ฿${tx.amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}
+                </div>
+                <div class="text-[9px] text-slate-400">${tx.transaction_type}</div>
+              </div>
+              <button onclick="deleteTransactionItem(${tx.id})" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 flex items-center justify-center transition" title="ลบรายการ">
+                <i class="fa-solid fa-trash-can text-xs"></i>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function filterCategory(cat) {
+      currentCategoryFilter = cat;
+      document.querySelectorAll('.cat-pill').forEach(btn => {
+        if (btn.innerText.includes(cat) || (cat === 'ทั้งหมด' && btn.innerText === 'ทั้งหมด')) {
+          btn.classList.add('aurora-btn', 'text-white', 'font-bold');
+          btn.classList.remove('bg-slate-900/80', 'text-slate-300');
+        } else {
+          btn.classList.remove('aurora-btn', 'text-white', 'font-bold');
+          btn.classList.add('bg-slate-900/80', 'text-slate-300');
+        }
+      });
+      loadTransactions();
+    }
+
+    function debounceSearch() {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        loadTransactions();
+      }, 300);
+    }
+
+    async function deleteTransactionItem(id) {
+      if (!confirm('ยืนยันลบรายการสลิปนี้?')) return;
+      try {
+        const res = await fetch(`/api/transactions/${id}`, {method: 'DELETE'});
+        const data = await res.json();
+        if (data.status === 'success') {
+          loadTransactions();
+          loadDashboard();
+        }
+      } catch (e) {
+        alert('เกิดข้อผิดพลาดในการลบรายการ');
+      }
+    }
+
+    // Modal Image Preview
+    function viewSlipImage(path) {
+      if (!path) return;
+      document.getElementById('modalImageSrc').src = path;
+      document.getElementById('imageModal').classList.remove('hidden');
+    }
+    function closeImageModal() {
+      document.getElementById('imageModal').classList.add('hidden');
+    }
+  </script>
+</body>
+</html>
