@@ -1,14 +1,43 @@
 import sqlite3
 import os
+import tempfile
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "expenses.db")
+def get_db_path() -> str:
+    """Find a writable database path (supports local, Render, Vercel serverless, etc.)."""
+    local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "expenses.db")
+    try:
+        test_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".write_test")
+        with open(test_file, "w") as f:
+            f.write("1")
+        os.remove(test_file)
+        return local_path
+    except Exception:
+        tmp_dir = os.environ.get("TMPDIR") or tempfile.gettempdir()
+        tmp_db = os.path.join(tmp_dir, "expenses.db")
+        if os.path.exists(local_path) and not os.path.exists(tmp_db):
+            try:
+                import shutil
+                shutil.copyfile(local_path, tmp_db)
+            except Exception:
+                pass
+        return tmp_db
+
+DB_PATH = get_db_path()
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    return conn
+    global DB_PATH
+    try:
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        return conn
+    except Exception:
+        # Fallback to in-memory or temp if DB_PATH fails
+        DB_PATH = os.path.join(tempfile.gettempdir(), "expenses.db")
+        conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+        conn.row_factory = sqlite3.Row
+        return conn
 
 def init_db():
     conn = get_connection()
@@ -161,14 +190,12 @@ def get_statistics():
     conn = get_connection()
     cursor = conn.cursor()
     
-    # 1. Total summary
     cursor.execute("SELECT COUNT(*) as count, SUM(amount) as total, AVG(amount) as average FROM transactions")
     summary = cursor.fetchone()
     total_amount = summary["total"] or 0.0
     total_count = summary["count"] or 0
     avg_amount = summary["average"] or 0.0
 
-    # 2. Category breakdown
     cursor.execute("""
         SELECT category, SUM(amount) as total, COUNT(*) as count
         FROM transactions
@@ -177,7 +204,6 @@ def get_statistics():
     """)
     categories = [dict(r) for r in cursor.fetchall()]
 
-    # 3. Bank breakdown
     cursor.execute("""
         SELECT bank, SUM(amount) as total, COUNT(*) as count
         FROM transactions
@@ -186,7 +212,6 @@ def get_statistics():
     """)
     banks = [dict(r) for r in cursor.fetchall()]
 
-    # 4. Daily timeline (last 30 days of data)
     cursor.execute("""
         SELECT SUBSTR(date_time, 1, 10) as day, SUM(amount) as total, COUNT(*) as count
         FROM transactions
@@ -196,7 +221,6 @@ def get_statistics():
     """)
     daily = [dict(r) for r in cursor.fetchall()]
 
-    # 5. Top receivers
     cursor.execute("""
         SELECT receiver_name, SUM(amount) as total, COUNT(*) as count
         FROM transactions

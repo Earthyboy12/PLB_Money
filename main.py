@@ -2,6 +2,7 @@ import os
 import socket
 import shutil
 import uuid
+import base64
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
@@ -28,11 +29,15 @@ STATIC_DIR = os.path.join(BASE_DIR, "static")
 UPLOADS_DIR = os.path.join(STATIC_DIR, "uploads")
 SAMPLES_DIR = os.path.join(STATIC_DIR, "samples")
 
-os.makedirs(UPLOADS_DIR, exist_ok=True)
-os.makedirs(SAMPLES_DIR, exist_ok=True)
+try:
+    os.makedirs(UPLOADS_DIR, exist_ok=True)
+    os.makedirs(SAMPLES_DIR, exist_ok=True)
+except Exception:
+    pass
 
-# Mount static files
-app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+# Mount static files safely
+if os.path.exists(STATIC_DIR):
+    app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 def get_local_ip():
     """Detect local LAN IP for mobile access."""
@@ -47,7 +52,10 @@ def get_local_ip():
 
 @app.on_event("startup")
 def startup():
-    db.init_db()
+    try:
+        db.init_db()
+    except Exception as e:
+        print(f"[DB Init Warning] {e}")
 
 @app.get("/", response_class=HTMLResponse)
 def serve_index():
@@ -55,7 +63,7 @@ def serve_index():
     if os.path.exists(index_file):
         with open(index_file, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse("<h1>Loading Slip Expense Tracker...</h1>")
+    return HTMLResponse("<h1>PLB Money Is King is running...</h1>")
 
 @app.get("/api/server-info")
 def server_info():
@@ -88,37 +96,73 @@ def set_config(data: Dict[str, str]):
 async def upload_and_analyze(files: List[UploadFile] = File(...)):
     results = []
     ignored = []
+    
+    # Check if disk writing is allowed (Vercel serverless has read-only static dir)
+    can_save_disk = True
+    try:
+        os.makedirs(UPLOADS_DIR, exist_ok=True)
+        test_file = os.path.join(UPLOADS_DIR, ".write_test")
+        with open(test_file, "w") as f:
+            f.write("1")
+        os.remove(test_file)
+    except Exception:
+        can_save_disk = False
+
     for file in files:
-        file_ext = os.path.splitext(file.filename)[1].lower()
-        if not file_ext:
-            file_ext = ".jpg"
-        unique_name = f"{uuid.uuid4().hex[:10]}_{file.filename}"
-        save_path = os.path.join(UPLOADS_DIR, unique_name)
-        
-        with open(save_path, "wb") as f:
+        try:
             content = await file.read()
-            f.write(content)
+            if not content:
+                continue
 
-        # Analyze slip
-        analysis = parser.analyze_slip(save_path, file.filename)
-        if not analysis.get("is_slip", True):
-            # Ignored non-slip photo
+            # Determine mime type & safe extension
+            mime_type = "image/jpeg"
+            ext = ".jpg"
+            if content.startswith(b"\x89PNG"):
+                mime_type = "image/png"
+                ext = ".png"
+            elif b"WEBP" in content[:20]:
+                mime_type = "image/webp"
+                ext = ".webp"
+
+            # Image path: write to disk if writable, otherwise use base64 data URL
+            image_ref = ""
+            if can_save_disk:
+                unique_name = f"{uuid.uuid4().hex}{ext}"
+                save_path = os.path.join(UPLOADS_DIR, unique_name)
+                try:
+                    with open(save_path, "wb") as f:
+                        f.write(content)
+                    image_ref = f"/static/uploads/{unique_name}"
+                except Exception:
+                    b64_img = base64.b64encode(content).decode("utf-8")
+                    image_ref = f"data:{mime_type};base64,{b64_img}"
+            else:
+                b64_img = base64.b64encode(content).decode("utf-8")
+                image_ref = f"data:{mime_type};base64,{b64_img}"
+
+            # Analyze slip in-memory directly
+            filename = file.filename or "image"
+            analysis = parser.analyze_slip(content, filename)
+            
+            if not analysis.get("is_slip", True):
+                ignored.append({
+                    "filename": filename,
+                    "reason": analysis.get("reason", "ไม่ใช่สลิปการเงิน")
+                })
+                continue
+
+            data = analysis.get("data", {})
+            data["image_path"] = image_ref
+            data["original_filename"] = filename
+            data["engine"] = analysis.get("engine", "Unknown")
+
+            results.append(data)
+        except Exception as e:
+            print(f"[Upload Error on {getattr(file, 'filename', 'unknown')}]: {e}")
             ignored.append({
-                "filename": file.filename,
-                "reason": analysis.get("reason", "ไม่ใช่สลิปการเงิน")
+                "filename": getattr(file, "filename", "unknown"),
+                "reason": f"เกิดข้อผิดพลาดในการประมวลผล: {str(e)}"
             })
-            try:
-                os.remove(save_path)
-            except Exception:
-                pass
-            continue
-
-        data = analysis.get("data", {})
-        data["image_path"] = f"/static/uploads/{unique_name}"
-        data["original_filename"] = file.filename
-        data["engine"] = analysis.get("engine", "Unknown")
-
-        results.append(data)
 
     return {
         "status": "success",

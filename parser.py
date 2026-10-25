@@ -3,7 +3,7 @@ import json
 import os
 import re
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 import httpx
 from database import get_setting
 
@@ -83,20 +83,22 @@ KNOWN_SAMPLES = [
     }
 ]
 
-def encode_image(image_path: str) -> str:
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
-
-def parse_slip_with_gemini(image_path: str, api_key: str) -> Dict[str, Any]:
+def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[str, Any]:
     """Call Google Gemini Vision API to detect whether it's a slip and extract slip data."""
-    base64_image = encode_image(image_path)
-    
-    ext = os.path.splitext(image_path)[1].lower()
-    mime_type = "image/jpeg"
-    if ext == ".png":
-        mime_type = "image/png"
-    elif ext == ".webp":
-        mime_type = "image/webp"
+    if isinstance(image_data, bytes):
+        base64_image = base64.b64encode(image_data).decode("utf-8")
+        if image_data.startswith(b"\x89PNG"):
+            mime_type = "image/png"
+        elif b"WEBP" in image_data[:20]:
+            mime_type = "image/webp"
+        else:
+            mime_type = "image/jpeg"
+    else:
+        with open(image_data, "rb") as f:
+            raw_bytes = f.read()
+        base64_image = base64.b64encode(raw_bytes).decode("utf-8")
+        ext = os.path.splitext(image_data)[1].lower()
+        mime_type = "image/png" if ext == ".png" else ("image/webp" if ext == ".webp" else "image/jpeg")
 
     prompt = """คุณเป็น AI ผู้เชี่ยวชาญการตรวจสอบและอ่านสลิปธนาคารของไทย
 ภารกิจของคุณ:
@@ -154,25 +156,28 @@ def parse_slip_with_gemini(image_path: str, api_key: str) -> Dict[str, Any]:
             response.raise_for_status()
 
         data = response.json()
-        text_content = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+        parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+        if not parts or "text" not in parts[0]:
+            raise ValueError("Gemini returned empty or blocked response")
+
+        text_content = parts[0]["text"].strip()
         
-        if text_content.startswith("```json"):
-            text_content = text_content[7:]
-        if text_content.startswith("```"):
-            text_content = text_content[3:]
-        if text_content.endswith("```"):
-            text_content = text_content[:-3]
+        # Safe JSON regex extraction
+        json_match = re.search(r"\{.*\}", text_content, re.DOTALL)
+        if json_match:
+            result = json.loads(json_match.group(0))
+        else:
+            result = json.loads(text_content)
             
-        result = json.loads(text_content.strip())
         return result
 
-def analyze_slip(image_path: str, filename: str = "") -> Dict[str, Any]:
+def analyze_slip(image_data: Union[str, bytes], filename: str = "") -> Dict[str, Any]:
     """Analyze slip image: detects whether it's a slip and parses details."""
     api_key = get_setting("gemini_api_key") or os.environ.get("GEMINI_API_KEY")
     
     if api_key and api_key.strip():
         try:
-            parsed = parse_slip_with_gemini(image_path, api_key.strip())
+            parsed = parse_slip_with_gemini(image_data, api_key.strip())
             is_slip = parsed.get("is_slip", True)
             if not is_slip:
                 return {
@@ -182,7 +187,6 @@ def analyze_slip(image_path: str, filename: str = "") -> Dict[str, Any]:
                     "reason": parsed.get("reason", "ไม่ใช่สลิปการเงิน")
                 }
             
-            # Ensure numbers
             parsed["amount"] = float(parsed.get("amount", 0.0))
             parsed["fee"] = float(parsed.get("fee", 0.0))
             return {
@@ -195,7 +199,10 @@ def analyze_slip(image_path: str, filename: str = "") -> Dict[str, Any]:
             print(f"[Gemini Vision Error] {e}")
 
     # Check known sample slips
-    lower_name = (filename + " " + os.path.basename(image_path)).lower()
+    lower_name = filename.lower()
+    if isinstance(image_data, str):
+        lower_name += " " + os.path.basename(image_data).lower()
+        
     for sample in KNOWN_SAMPLES:
         if any(kw in lower_name for kw in sample["keywords"]):
             return {
