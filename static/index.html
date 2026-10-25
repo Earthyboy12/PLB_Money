@@ -1014,48 +1014,123 @@
       }
     }
 
-    async function uploadAndAnalyzeFiles(files, totalSelected = 0, skippedByDate = 0, rangeLabel = 'ทั้งหมดในคลัง') {
-      document.getElementById('analysisLoading').classList.remove('hidden');
-      document.getElementById('loadingStatusText').innerText = `กำลังคัดกรอง ${files.length} รูป... AI กำลังค้นหาเฉพาะสลิปธนาคาร`;
+    // Client-side Image Compression via HTML5 Canvas (Eliminates 413 Payload Too Large)
+    async function compressImage(file, maxDim = 1280, quality = 0.8) {
+      if (!file || !file.type || !file.type.startsWith('image/')) {
+        return file;
+      }
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+            if (width > maxDim || height > maxDim) {
+              if (width > height) {
+                height = Math.round((height * maxDim) / width);
+                width = maxDim;
+              } else {
+                width = Math.round((width * maxDim) / height);
+                height = maxDim;
+              }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob((blob) => {
+              if (!blob) return resolve(file);
+              const compressed = new File([blob], file.name.replace(/\.[^/.]+$/, ".jpg"), {
+                type: 'image/jpeg',
+                lastModified: file.lastModified || Date.now()
+              });
+              resolve(compressed);
+            }, 'image/jpeg', quality);
+          };
+          img.onerror = () => resolve(file);
+          img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
+      });
+    }
 
-      const formData = new FormData();
-      for (let i = 0; i < files.length; i++) {
-        formData.append('files', files[i]);
+    async function uploadAndAnalyzeFiles(files, totalSelected = 0, skippedByDate = 0, rangeLabel = 'ทั้งหมดในคลัง') {
+      const loading = document.getElementById('analysisLoading');
+      const statusText = document.getElementById('loadingStatusText');
+      loading.classList.remove('hidden');
+
+      const totalFiles = files.length;
+      let totalSlipsFound = 0;
+      let totalIgnored = 0;
+      let batchSuccess = 0;
+
+      // Process in batches of 2 images to ensure request payload stays well below Vercel 4.5MB limit
+      const BATCH_SIZE = 2;
+
+      for (let i = 0; i < totalFiles; i += BATCH_SIZE) {
+        const chunk = files.slice(i, i + BATCH_SIZE);
+        const currentNum = Math.min(i + chunk.length, totalFiles);
+        statusText.innerText = `กำลังประมวลผลรูปที่ ${currentNum}/${totalFiles}... (ตรวจพบสลิปแล้ว ${totalSlipsFound} ใบ)`;
+
+        // 1. Compress images in client browser
+        let compressedChunk = [];
+        try {
+          compressedChunk = await Promise.all(chunk.map(f => compressImage(f, 1280, 0.8)));
+        } catch (compErr) {
+          compressedChunk = chunk;
+        }
+
+        // 2. Prepare FormData
+        const formData = new FormData();
+        for (let j = 0; j < compressedChunk.length; j++) {
+          formData.append('files', compressedChunk[j]);
+        }
+
+        try {
+          const res = await fetch('/api/upload-and-analyze', {
+            method: 'POST',
+            body: formData
+          });
+
+          if (!res.ok) {
+            const errText = await res.text();
+            console.warn(`Batch upload error (${res.status}):`, errText);
+            totalIgnored += chunk.length;
+            continue;
+          }
+
+          const data = await res.json();
+          if (data.status === 'success') {
+            batchSuccess++;
+            scannedItems = [...data.items, ...scannedItems];
+            renderScannedCards();
+            totalSlipsFound += (data.slips_found || 0);
+            totalIgnored += (data.ignored_count || 0);
+          }
+        } catch (batchErr) {
+          console.warn(`Error on batch ${i}:`, batchErr);
+          totalIgnored += chunk.length;
+        }
       }
 
-      try {
-        const res = await fetch('/api/upload-and-analyze', {
-          method: 'POST',
-          body: formData
-        });
-        if (!res.ok) {
-          const errText = await res.text();
-          throw new Error(`เซิร์ฟเวอร์ตอบกลับ (${res.status}): ${errText.slice(0, 80)}`);
-        }
-        const data = await res.json();
-        if (data.status === 'success') {
-          scannedItems = [...data.items, ...scannedItems];
-          renderScannedCards();
+      loading.classList.add('hidden');
 
-          // Display sweeper summary
-          const summary = document.getElementById('sweeperSummary');
-          summary.classList.remove('hidden');
-          document.getElementById('sweeperTitle').innerText = `ผลการกวาดรูป (ช่วง: ${rangeLabel})`;
-          let desc = `ตรวจสแกน ${data.total_scanned} รูป ➔ พบสลิปเงิน ${data.slips_found} ใบ (ข้ามรูปทั่วไป ${data.ignored_count} รูป)`;
-          if (skippedByDate > 0) {
-            desc += ` • นอกช่วงเวลา ${skippedByDate} รูป`;
-          }
-          document.getElementById('sweeperDesc').innerText = desc;
-          document.getElementById('sweeperBadge').innerText = `${data.slips_found} SLIPS FOUND`;
+      // Display sweeper summary
+      const summary = document.getElementById('sweeperSummary');
+      summary.classList.remove('hidden');
+      document.getElementById('sweeperTitle').innerText = `ผลการกวาดรูป (ช่วง: ${rangeLabel})`;
+      let desc = `ตรวจสแกน ${totalFiles} รูป ➔ พบสลิปเงิน ${totalSlipsFound} ใบ (ข้ามรูปทั่วไป ${totalIgnored} รูป)`;
+      if (skippedByDate > 0) {
+        desc += ` • นอกช่วงเวลา ${skippedByDate} รูป`;
+      }
+      document.getElementById('sweeperDesc').innerText = desc;
+      document.getElementById('sweeperBadge').innerText = `${totalSlipsFound} SLIPS FOUND`;
 
-          if (data.slips_found === 0) {
-            alert(`ไม่พบสลิปธนาคารใน ${files.length} รูปที่เลือกมา (AI ตรวจสอบแล้วเป็นรูปทั่วไปทั้งหมด)`);
-          }
-        }
-      } catch (err) {
-        alert('วิเคราะห์สลิปล้มเหลว: ' + err.message);
-      } finally {
-        document.getElementById('analysisLoading').classList.add('hidden');
+      if (totalSlipsFound === 0) {
+        alert(`สแกนเสร็จสิ้น: ไม่พบสลิปธนาคารใน ${totalFiles} รูปที่เลือกมา (AI ตรวจสอบแล้วเป็นรูปทั่วไป หรือไฟล์ถูกข้าม)`);
       }
     }
 
