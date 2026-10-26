@@ -100,17 +100,17 @@ def clean_float(val: Any, default: float = 0.0) -> float:
     return default
 
 def validate_gemini_api_key(key: str) -> Dict[str, Any]:
-    """Test if a Gemini API key is valid with Google AI Studio."""
+    """Test if a Gemini API key is valid with Google AI Studio (supports AIzaSy... and modern AQ.... keys)."""
     clean_key = (key or "").strip().replace('"', '').replace("'", "")
     if not clean_key or len(clean_key) < 15:
-        return {"valid": False, "message": "กรุณาใส่รหัส API Key ให้ครบถ้วน (ปกติขึ้นต้นด้วย AIzaSy... และยาวประมาณ 39 ตัวอักษร)"}
+        return {"valid": False, "message": "กรุณาใส่รหัส API Key ให้ครบถ้วน (เช่น ขึ้นต้นด้วย AIzaSy... หรือ AQ....)"}
     
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash?key={clean_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models?key={clean_key}"
     try:
-        with httpx.Client(timeout=10.0) as client:
+        with httpx.Client(timeout=12.0) as client:
             r = client.get(url)
             if r.status_code == 200:
-                return {"valid": True, "message": "API Key ถูกต้องและเชื่อมต่อกับ Google สำเร็จ!"}
+                return {"valid": True, "message": "API Key ถูกต้องและเชื่อมต่อกับ Google AI สำเร็จ!"}
             data = r.json()
             err_msg = data.get("error", {}).get("message", r.text)
             return {"valid": False, "message": f"Google แจ้งว่า API Key ไม่ถูกต้อง: {err_msg}"}
@@ -176,7 +176,6 @@ def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[
 
 ตอบเฉพาะ JSON Object เท่านั้น ห้ามใส่ markdown หรือข้อความอื่น"""
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     payload = {
         "contents": [
             {
@@ -199,30 +198,53 @@ def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[
 
     headers = {"Content-Type": "application/json"}
     
-    with httpx.Client(timeout=35.0) as client:
-        response = client.post(url, json=payload, headers=headers)
-        if response.status_code != 200:
-            err_detail = response.text
-            try:
-                err_detail = response.json().get("error", {}).get("message", response.text)
-            except Exception:
-                pass
-            raise ValueError(f"Google API Error ({response.status_code}): {err_detail}")
+    # Try models in order of speed & availability (gemini-3.5-flash-lite delivers ~2s response time)
+    models_to_try = [
+        "gemini-3.5-flash-lite",
+        "gemini-3.5-flash",
+        "gemini-flash-latest",
+        "gemini-1.5-flash"
+    ]
+    
+    last_error = ""
+    for model_name in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={clean_api_key}"
+        try:
+            with httpx.Client(timeout=35.0) as client:
+                response = client.post(url, json=payload, headers=headers)
+                if response.status_code == 200:
+                    data = response.json()
+                    parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+                    if not parts or "text" not in parts[0]:
+                        continue
 
-        data = response.json()
-        parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
-        if not parts or "text" not in parts[0]:
-            raise ValueError("Gemini returned empty or blocked response")
+                    text_content = parts[0]["text"].strip()
+                    json_match = re.search(r"\{.*\}", text_content, re.DOTALL)
+                    if json_match:
+                        result = json.loads(json_match.group(0))
+                    else:
+                        result = json.loads(text_content)
+                    return result
 
-        text_content = parts[0]["text"].strip()
-        
-        json_match = re.search(r"\{.*\}", text_content, re.DOTALL)
-        if json_match:
-            result = json.loads(json_match.group(0))
-        else:
-            result = json.loads(text_content)
-            
-        return result
+                # If 404 (model not available for this key) or 503 (high demand), try next model
+                if response.status_code in (404, 503):
+                    last_error = f"{model_name}: {response.text[:80]}"
+                    continue
+
+                # Definite authentication / invalid key error
+                err_detail = response.text
+                try:
+                    err_detail = response.json().get("error", {}).get("message", response.text)
+                except Exception:
+                    pass
+                raise ValueError(f"Google API Error ({response.status_code}): {err_detail}")
+        except ValueError:
+            raise
+        except Exception as e:
+            last_error = str(e)
+            continue
+
+    raise ValueError(f"Google AI ขัดข้อง (โมเดลไม่ตอบสนอง: {last_error[:60]})")
 
 def analyze_slip(image_data: Union[str, bytes], filename: str = "", api_key_override: str = "") -> Dict[str, Any]:
     """Analyze slip image: detects whether it's a slip and parses details with robust error diagnostics."""
@@ -243,6 +265,22 @@ def analyze_slip(image_data: Union[str, bytes], filename: str = "", api_key_over
             # Robust float parsing
             parsed["amount"] = clean_float(parsed.get("amount", 0.0))
             parsed["fee"] = clean_float(parsed.get("fee", 0.0))
+
+            # Normalize receiver_name & sender_name (convert dict to string if needed)
+            rec = parsed.get("receiver_name")
+            if isinstance(rec, dict):
+                parts = [str(v) for v in rec.values() if v]
+                parsed["receiver_name"] = " ".join(parts).strip()
+            elif rec is not None:
+                parsed["receiver_name"] = str(rec).strip()
+
+            send = parsed.get("sender_name")
+            if isinstance(send, dict):
+                parts = [str(v) for v in send.values() if v]
+                parsed["sender_name"] = " ".join(parts).strip()
+            elif send is not None:
+                parsed["sender_name"] = str(send).strip()
+
             return {
                 "success": True,
                 "is_slip": True,
