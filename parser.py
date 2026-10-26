@@ -83,8 +83,24 @@ KNOWN_SAMPLES = [
     }
 ]
 
+def clean_float(val: Any, default: float = 0.0) -> float:
+    """Robust float cleaner handling commas, Thai text, currency symbols."""
+    if val is None:
+        return default
+    if isinstance(val, (int, float)):
+        return float(val)
+    if isinstance(val, str):
+        val_clean = val.replace(",", "").strip()
+        match = re.search(r"(\d+(?:\.\d{1,2})?)", val_clean)
+        if match:
+            try:
+                return float(match.group(1))
+            except Exception:
+                pass
+    return default
+
 def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[str, Any]:
-    """Call Google Gemini Vision API to detect whether it's a slip and extract slip data."""
+    """Call Google Gemini Vision API to detect whether it's a slip and extract slip data with high precision."""
     if isinstance(image_data, bytes):
         base64_image = base64.b64encode(image_data).decode("utf-8")
         if image_data.startswith(b"\x89PNG"):
@@ -100,28 +116,41 @@ def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[
         ext = os.path.splitext(image_data)[1].lower()
         mime_type = "image/png" if ext == ".png" else ("image/webp" if ext == ".webp" else "image/jpeg")
 
-    prompt = """คุณเป็น AI ผู้เชี่ยวชาญการตรวจสอบและอ่านสลิปธนาคารของไทย
-ภารกิจของคุณ:
-1. ตรวจสอบว่าภาพนี้คือ "สลิปธนาคาร / หลักฐานการโอนเงิน / ใบเสร็จจ่ายบิล / สลิปเติมเงิน / สลิปซื้อสลาก" ใช่หรือไม่?
-   - ถ้าไม่ใช่ (เช่น เป็นรูปถ่ายคน, รูปอาหาร, ทิวทัศน์, มีม, ภาพแคปแชตทั่วไป หรือรูปเอกสารที่ไม่ใช่สลิปการเงิน) ให้ตอบกลับเป็น JSON ดังนี้:
+    prompt = """คุณเป็น AI ผู้เชี่ยวชาญการอ่านสลิปธนาคารและหลักฐานการโอนเงินของไทยทุกธนาคาร (กสิกรไทย K+, กรุงไทย Next, ttb touch, SCB Easy, ธ.ก.ส., ออมสิน, เป๋าตัง G-Wallet, TrueMoney ฯลฯ)
+
+ภารกิจสำคัญที่สุด:
+1. ตรวจสอบว่าภาพนี้เป็น "สลิปธนาคาร / หลักฐานการโอนเงิน / ใบเสร็จจ่ายบิล / สลิปเติมเงิน / สลิปซื้อสลาก" ใช่หรือไม่?
+   - ถ้าไม่ใช่สลิปการเงิน (เช่น เป็นรูปถ่ายคน, รูปอาหาร, ทิวทัศน์, มีม, แคปแชตทั่วไป) ตอบกลับ:
      {"is_slip": false, "reason": "ไม่ใช่สลิปการเงิน (เป็นรูปภาพทั่วไป)"}
-   
-   - ถ้าใช่สลิปการเงิน ให้ตอบกลับเป็น JSON โดยมีฟิลด์ดังนี้:
-     {
-       "is_slip": true,
-       "bank": "ชื่อธนาคารหรือแอปต้นทาง เช่น กสิกรไทย, กรุงไทย, ttb, เป๋าตัง, ไทยพาณิชย์",
-       "transaction_type": "ประเภทรายการ เช่น โอนเงิน, จ่ายบิล, เติมเงิน, ซื้อสลาก, ชำระค่าสินค้า",
-       "sender_name": "ชื่อผู้โอน/ผู้ทำรายการ",
-       "sender_account": "เลขบัญชีต้นทาง (เช่น xxx-x-x1234-x)",
-       "receiver_name": "ชื่อผู้รับ/ร้านค้าปลายทาง",
-       "receiver_account": "เลขบัญชีหรือเบอร์พร้อมเพย์ปลายทาง",
-       "amount": ตัวเลขยอดเงินที่จ่ายจริง (float ตัวเลขเท่านั้น เช่น 1000.0),
-       "fee": ค่าธรรมเนียม (float เช่น 0.0),
-       "date_time": "วันเวลาในรูปแบบมาตรฐาน YYYY-MM-DD HH:MM:SS (โปรดแปลง พ.ศ. เช่น 2569 หรือ 69 ให้เป็น ค.ศ. 2026 ให้ถูกต้อง)",
-       "ref_id": "รหัสอ้างอิงธุรกรรม / Ref No.",
-       "category": "หมวดหมู่อัตโนมัติ: ['🍔 อาหารและเครื่องดื่ม', '🛒 ช้อปปิ้ง & ของใช้', '💳 ชำระบิล/บัตรเครดิต', '📲 เติมเงิน & วอลเล็ต', '🎟️ เสี่ยงโชค & บันเทิง', '🚗 เดินทาง & คมนาคม', '🏥 สุขภาพ & ยา', '🏷️ อื่นๆ']",
-       "note": "สรุปสั้นๆ ภาษาไทย"
-     }
+
+2. กฎเหล็กในการระบุ "จำนวนเงินที่โอนหรือชำระจริง (Transaction Amount)" ให้ถูกต้องแม่นยำ 100%:
+   - จุดสังเกตหลักตามรูปแบบสลิปไทย:
+     1) หาตัวเลขที่อยู่ "ก่อนหน้าคำว่า บาท" เสมอ เช่น "6,790.00 บาท", "40.00 บาท", "320 บาท"
+     2) หาตัวเลขที่อยู่ "ตามหลังคำว่า จำนวน:", "จำนวนเงิน:", "ยอดเงิน:", "ยอดชำระทั้งหมด:", "ยอดชำระ:"
+     3) หรือตัวเลขขนาดใหญ่ตรงกลางสลิปที่บอกยอดเงิน เช่น ในสลิป ttb "1,000.00" เหนือคำว่าค่าธรรมเนียม
+   - ข้อห้ามเด็ดขาด (สิ่งที่ต้องหลีกเลี่ยง):
+     * ห้าม เอาตัวเลข "ค่าธรรมเนียม" เช่น 0.00 บาท มาใส่เป็น amount เด็ดขาด!
+     * ห้าม เอา "ยอดเงินคงเหลือ / ยอดเงินในบัญชี" (Remaining Balance) มาใส่เป็น amount
+     * ห้าม เอาจำนวนชิ้น (เช่น "4 ใบ") หรือเบอร์โทรศัพท์ (086...) หรือเลขบัญชี หรือรหัสอ้างอิงมาใส่เป็น amount
+     * หากเป็นสลาก เช่น "สลาก 4 ใบ ยอดชำระทั้งหมด 320 บาท" ยอดเงินต้องเป็น 320.0 ไม่ใช่ 4 หรือ 80
+   - รูปแบบที่ต้องส่งกลับ: ส่งเป็นตัวเลข float เท่านั้น (ตัดเครื่องหมายจุลภาค comma และคำว่า บาท ออก) เช่น 6790.0, 1000.0, 320.0, 40.0
+
+ตอบกลับเป็น JSON เท่านั้นในรูปแบบนี้:
+{
+  "is_slip": true,
+  "bank": "ชื่อธนาคาร เช่น ธนาคารกสิกรไทย, ธนาคารกรุงไทย, ttb, เป๋าตัง",
+  "transaction_type": "ประเภทรายการ เช่น โอนเงิน, จ่ายบิล, เติมเงิน, ซื้อสลาก, ชำระค่าสินค้า",
+  "sender_name": "ชื่อผู้โอน",
+  "sender_account": "เลขบัญชีต้นทาง",
+  "receiver_name": "ชื่อผู้รับ/ร้านค้าปลายทาง",
+  "receiver_account": "เลขบัญชี/พร้อมเพย์ปลายทาง",
+  "amount": 1000.0,
+  "fee": 0.0,
+  "date_time": "YYYY-MM-DD HH:MM:SS",
+  "ref_id": "รหัสอ้างอิงธุรกรรม",
+  "category": "หมวดหมู่ ['🍔 อาหารและเครื่องดื่ม', '🛒 ช้อปปิ้ง & ของใช้', '💳 ชำระบิล/บัตรเครดิต', '📲 เติมเงิน & วอลเล็ต', '🎟️ เสี่ยงโชค & บันเทิง', '🚗 เดินทาง & คมนาคม', '🏥 สุขภาพ & ยา', '🏷️ อื่นๆ']",
+  "note": "สรุปสั้นๆ ภาษาไทย"
+}
 
 ตอบเฉพาะ JSON Object เท่านั้น ห้ามใส่ markdown หรือข้อความอื่น"""
 
@@ -162,7 +191,6 @@ def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[
 
         text_content = parts[0]["text"].strip()
         
-        # Safe JSON regex extraction
         json_match = re.search(r"\{.*\}", text_content, re.DOTALL)
         if json_match:
             result = json.loads(json_match.group(0))
@@ -171,13 +199,13 @@ def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[
             
         return result
 
-def analyze_slip(image_data: Union[str, bytes], filename: str = "") -> Dict[str, Any]:
-    """Analyze slip image: detects whether it's a slip and parses details."""
-    api_key = get_setting("gemini_api_key") or os.environ.get("GEMINI_API_KEY")
+def analyze_slip(image_data: Union[str, bytes], filename: str = "", api_key_override: str = "") -> Dict[str, Any]:
+    """Analyze slip image: detects whether it's a slip and parses details with robust type casting."""
+    api_key = (api_key_override or get_setting("gemini_api_key") or os.environ.get("GEMINI_API_KEY") or "").strip()
     
-    if api_key and api_key.strip():
+    if api_key:
         try:
-            parsed = parse_slip_with_gemini(image_data, api_key.strip())
+            parsed = parse_slip_with_gemini(image_data, api_key)
             is_slip = parsed.get("is_slip", True)
             if not is_slip:
                 return {
@@ -187,12 +215,13 @@ def analyze_slip(image_data: Union[str, bytes], filename: str = "") -> Dict[str,
                     "reason": parsed.get("reason", "ไม่ใช่สลิปการเงิน")
                 }
             
-            parsed["amount"] = float(parsed.get("amount", 0.0))
-            parsed["fee"] = float(parsed.get("fee", 0.0))
+            # Robust float parsing
+            parsed["amount"] = clean_float(parsed.get("amount", 0.0))
+            parsed["fee"] = clean_float(parsed.get("fee", 0.0))
             return {
                 "success": True,
                 "is_slip": True,
-                "engine": "Gemini AI Vision",
+                "engine": "🤖 Gemini AI Vision",
                 "data": parsed
             }
         except Exception as e:
@@ -208,17 +237,17 @@ def analyze_slip(image_data: Union[str, bytes], filename: str = "") -> Dict[str,
             return {
                 "success": True,
                 "is_slip": True,
-                "engine": "Sample Pattern Matcher",
+                "engine": "🧪 ตัวอย่างจำลอง (Pattern Matcher)",
                 "data": sample["data"].copy()
             }
             
-    # Fallback template
+    # Fallback template if no API key is provided
     now = datetime.now()
     default_ref = "TXN" + now.strftime("%Y%m%d%H%M%S")
     return {
         "success": True,
         "is_slip": True,
-        "engine": "Manual/Template (กรุณาตั้งค่า Gemini API Key เพื่อเปิดระบบคัดกรองอัตโนมัติ)",
+        "engine": "⚠️ โหมดจำลอง (ยังไม่ได้ใส่ Gemini API Key)",
         "data": {
             "bank": "สลิปธนาคาร",
             "transaction_type": "โอนเงิน/จ่ายบิล",
@@ -231,6 +260,6 @@ def analyze_slip(image_data: Union[str, bytes], filename: str = "") -> Dict[str,
             "date_time": now.strftime("%Y-%m-%d %H:%M:%S"),
             "ref_id": default_ref,
             "category": "🍔 อาหารและเครื่องดื่ม",
-            "note": "สแกนจากแกลเลอรี"
+            "note": "กรุณาใส่ API Key ในเมนู 'ตั้งค่า AI' ด้านบน เพื่อให้อ่านยอดเงินอัตโนมัติ"
         }
     }

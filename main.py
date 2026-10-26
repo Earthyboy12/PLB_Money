@@ -107,10 +107,18 @@ def make_thumbnail_data_url(content: bytes) -> str:
         return "data:image/jpeg;base64," + base64.b64encode(content[:15000]).decode("utf-8")
 
 @app.post("/api/upload-and-analyze")
-async def upload_and_analyze(files: List[UploadFile] = File(...)):
+async def upload_and_analyze(request: Request, files: List[UploadFile] = File(...)):
     results = []
     ignored = []
     
+    # Extract API key from header if provided by client localStorage
+    client_api_key = request.headers.get("x-gemini-api-key", "").strip()
+    if client_api_key:
+        try:
+            db.set_setting("gemini_api_key", client_api_key)
+        except Exception:
+            pass
+
     # Check if disk writing is allowed (Vercel serverless has read-only static dir)
     can_save_disk = True
     try:
@@ -151,7 +159,7 @@ async def upload_and_analyze(files: List[UploadFile] = File(...)):
 
             # Analyze slip in-memory directly
             filename = file.filename or "image"
-            analysis = parser.analyze_slip(content, filename)
+            analysis = parser.analyze_slip(content, filename, api_key_override=client_api_key)
             
             if not analysis.get("is_slip", True):
                 ignored.append({
