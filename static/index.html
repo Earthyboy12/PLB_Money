@@ -546,21 +546,53 @@
         </button>
       </div>
 
-      <div class="space-y-3 text-xs text-slate-300">
-        <p>
-          ระบบวิเคราะห์สลิปธนาคารไทย (กสิกร, กรุงไทย, ttb, เป๋าตัง ฯลฯ) พร้อมแปลงวันที่ พ.ศ. และแยกหมวดหมู่อัตโนมัติ
-        </p>
+      <div class="space-y-3.5 text-xs text-slate-300">
+        <!-- 3-Step Instruction Guide -->
+        <div class="p-3.5 rounded-2xl bg-sky-950/60 border border-sky-400/30 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-sky-200 flex items-center gap-1.5 font-cute text-xs">
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> วิธีขอรับ Gemini API Key (ฟรี 100%)
+            </span>
+            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+              FREE
+            </span>
+          </div>
 
-        <div class="space-y-1.5">
-          <label class="font-bold text-sky-200 block font-mono text-[11px] uppercase tracking-wider">GEMINI API KEY:</label>
-          <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full p-2.5 bg-slate-900 border border-sky-400/20 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-400 font-mono text-xs text-sky-100">
-          <p class="text-[11px] text-slate-400">
-            ขอรับ API Key ฟรีได้ที่ <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-sky-400 underline hover:text-sky-300">Google AI Studio</a>
-          </p>
+          <div class="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+            <div class="flex items-start gap-2">
+              <span class="w-4 h-4 rounded-full bg-sky-500/20 text-sky-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">1</span>
+              <span>เข้าเว็บ Google AI Studio ด้วยบัญชี Gmail ทั่วไป</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="w-4 h-4 rounded-full bg-sky-500/20 text-sky-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">2</span>
+              <span>กดปุ่มสีน้ำเงิน <strong>"Create API key"</strong> แล้วกด <strong>Copy</strong> รหัสที่ขึ้นต้นด้วย <code class="text-amber-300 font-mono">AIzaSy...</code></span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="w-4 h-4 rounded-full bg-sky-500/20 text-sky-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">3</span>
+              <span>นำรหัสมาวางในช่องด้านล่าง แล้วกด <strong>"บันทึกการตั้งค่า"</strong></span>
+            </div>
+          </div>
+
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" class="block w-full py-2 rounded-xl text-center font-bold text-xs bg-slate-900 hover:bg-sky-950/80 text-sky-300 border border-sky-400/40 transition">
+            <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> เปิดหน้ารับ Gemini API Key ทันที
+          </a>
         </div>
 
-        <div class="p-3 bg-sky-950/40 rounded-xl border border-sky-400/30 text-sky-200 text-[11px] leading-relaxed">
-          <span>🐻‍❄️❄️</span> ระบบมี <strong>4 สลิปตัวอย่างจริงของคุณ</strong> โหลดพร้อมใช้งานและคำนวณสถิติได้ทันที
+        <div class="space-y-1.5">
+          <label class="font-bold text-sky-200 block font-mono text-[11px] uppercase tracking-wider flex items-center justify-between">
+            <span>วาง GEMINI API KEY ที่นี่:</span>
+            <span id="keyStatusBadge" class="text-[10px] font-normal text-slate-400 font-sans"></span>
+          </label>
+          <div class="relative">
+            <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full pl-3 pr-9 py-2.5 bg-slate-900 border border-sky-400/30 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-400 font-mono text-xs text-sky-100">
+            <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-sky-300">
+              <i class="fa-solid fa-eye" id="toggleEyeIcon"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="p-2.5 bg-slate-900/60 rounded-xl border border-slate-700/60 text-slate-400 text-[10px] leading-relaxed">
+          🔒 <strong>ความปลอดภัย:</strong> API Key จะถูกบันทึกไว้ในความจำของเครื่องคุณอย่างปลอดภัย ไม่มีการส่งต่อไปยังที่อื่นนอกจากเรียกตรงไปยัง Google AI เพื่ออ่านสลิป
         </div>
       </div>
 
@@ -693,10 +725,30 @@
       }
     }
 
+    function toggleApiKeyVisibility() {
+      const input = document.getElementById('geminiApiKeyInput');
+      const icon = document.getElementById('toggleEyeIcon');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash text-sky-400';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-solid fa-eye text-slate-400';
+      }
+    }
+
     function openSettingsModal() {
       const localKey = localStorage.getItem('gemini_api_key') || '';
       if (localKey && document.getElementById('geminiApiKeyInput')) {
         document.getElementById('geminiApiKeyInput').value = localKey;
+      }
+      const badge = document.getElementById('keyStatusBadge');
+      if (badge) {
+        if (localKey && localKey.length > 5) {
+          badge.innerHTML = '<span class="text-emerald-400 font-bold">🟢 เชื่อมต่อแล้ว</span>';
+        } else {
+          badge.innerHTML = '<span class="text-amber-400 font-bold">🟡 ยังไม่ได้เชื่อมต่อ</span>';
+        }
       }
       document.getElementById('settingsModal').classList.remove('hidden');
     }
