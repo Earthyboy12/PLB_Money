@@ -348,18 +348,18 @@
         </div>
 
         <!-- Tips hint -->
-        <div class="p-2.5 rounded-xl bg-sky-950/40 border border-sky-400/20 text-[11px] text-sky-200/90 leading-relaxed flex items-start gap-2">
-          <i class="fa-solid fa-lightbulb text-amber-400 mt-0.5 shrink-0"></i>
+        <div class="p-3 rounded-2xl bg-sky-950/60 border border-sky-400/30 text-xs text-sky-200 leading-relaxed flex items-center gap-2.5">
+          <i class="fa-solid fa-lightbulb text-amber-300 text-sm shrink-0"></i>
           <span>
-            <strong>วิธีเลือกรูปบนมือถือ:</strong> แตะปุ่มด้านล่าง ➔ ในหน้าเลือกรูปให้แตะ <strong>"เลือก (Select)"</strong> แล้วลากนิ้วคลุมรูปทั้งหมด หรือเลือกทั้งอัลบั้ม Screenshots ได้เลย! AI จะคัดแยกรูปทั่วไปทิ้งให้อัตโนมัติ เหลือเฉพาะสลิปโอนเงินเท่านั้น ❄️
+            <strong>คำแนะนำ:</strong> เลือกรูปได้ทีละหลายสิบรูปพร้อมกัน AI จะคัดเฉพาะสลิปและตัดรายการโอนบัญชีตนเองออกให้อัตโนมัติ
           </span>
         </div>
       </div>
 
       <!-- AI Engine Status Pill -->
-      <div id="aiStatusPill" onclick="openSettingsModal()" class="cursor-pointer p-3 rounded-2xl border transition flex items-center justify-between gap-3 text-xs bg-slate-900/80 border-amber-500/30 text-amber-200">
+      <div id="aiStatusPill" onclick="openSettingsModal()" class="cursor-pointer p-3.5 rounded-2xl border transition flex items-center justify-between gap-3 text-xs sm:text-sm bg-slate-900/90 border-amber-500/40 text-amber-200">
         <div class="flex items-center gap-2.5 min-w-0">
-          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+          <span class="w-3 h-3 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
           <div class="truncate">
             <span class="font-bold text-amber-300">กำลังตรวจสอบสถานะ Gemini AI...</span>
           </div>
@@ -367,26 +367,26 @@
       </div>
 
       <!-- Polar Bear Scanner Dropzone -->
-      <div class="relative overflow-hidden frost-glass p-7 rounded-3xl border-2 border-dashed border-sky-400/40 hover:border-sky-300 transition text-center group cursor-pointer">
+      <div class="relative overflow-hidden frost-glass p-7 rounded-3xl border-2 border-dashed border-sky-400/50 hover:border-sky-300 transition text-center group cursor-pointer">
         <input type="file" id="slipFileInput" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
         
         <div class="relative z-0 flex flex-col items-center justify-center py-3">
           <!-- Mascot Icon -->
-          <div class="w-20 h-20 rounded-2xl bg-slate-900/80 border border-sky-400/40 p-1 mb-3 frost-glow shadow-xl group-hover:scale-105 transition">
+          <div class="w-20 h-20 rounded-2xl bg-slate-900/90 border border-sky-400/40 p-1 mb-3 frost-glow shadow-xl group-hover:scale-105 transition">
             <img src="/static/logo.png" alt="Bear Mascot" class="w-full h-full object-contain">
           </div>
-          <h3 class="font-bold text-base text-sky-100 font-cute tracking-wide mb-1" id="dropzoneTitle">
-            แตะเพื่อเลือกรูปจาก Gallery มือถือ
+          <h3 class="font-black text-lg sm:text-xl text-white font-cute tracking-wide mb-1" id="dropzoneTitle">
+            แตะเพื่อเลือกรูปสลิป
           </h3>
-          <p class="text-xs text-slate-400 max-w-sm mb-4 leading-relaxed" id="dropzoneSubtitle">
-            เลือกรูปทั้งหมดหรือหลายร้อยรูปพร้อมกันได้เลย ระบบจะกรองช่วงเวลาและหาเฉพาะสลิปเงินให้
+          <p class="text-xs sm:text-sm text-sky-200/90 max-w-sm mb-4 leading-relaxed" id="dropzoneSubtitle">
+            เลือกรวมหลายรูปได้ AI จะอ่านยอดและสรุปรายจ่ายทันที
           </p>
           <div class="flex flex-wrap items-center justify-center gap-2.5">
-            <span class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl aurora-btn text-white text-xs font-bold shadow-md">
-              <i class="fa-solid fa-images"></i> เปิด Gallery ในมือถือ
+            <span class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl aurora-btn text-white text-xs sm:text-sm font-bold shadow-md">
+              <i class="fa-solid fa-images"></i> เลือกรูปจากมือถือ
             </span>
-            <button type="button" onclick="loadSampleIntoScanner()" class="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900/80 text-sky-300 hover:bg-sky-950/60 border border-sky-400/30 text-xs font-medium transition z-20">
-              <i class="fa-solid fa-vial"></i> ลองสแกน 4 สลิปตัวอย่าง
+            <button type="button" onclick="loadSampleIntoScanner()" class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-900 text-sky-200 hover:bg-sky-950 border border-sky-400/40 text-xs sm:text-sm font-semibold transition z-20">
+              <i class="fa-solid fa-vial"></i> ลองสลิปตัวอย่าง
             </button>
           </div>
         </div>
@@ -424,28 +424,24 @@
       </div>
 
       <!-- Action Button: Save All to DB -->
-      <div id="saveAllBar" class="hidden sticky bottom-24 sm:bottom-8 z-30 frost-glass p-4 rounded-3xl border border-sky-400/40 shadow-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div id="saveAllBar" class="hidden sticky bottom-24 sm:bottom-8 z-30 frost-glass p-4 sm:p-5 rounded-3xl border-2 border-sky-400/50 shadow-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
         <div>
           <div class="flex items-center gap-2">
-            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">สลิปที่พร้อมบันทึก:</span>
-            <span class="text-sm font-bold text-sky-300 font-mono" id="readyCountText">0 รายการ</span>
+            <span class="text-xs font-bold text-slate-300 uppercase tracking-wider block">พร้อมบันทึก:</span>
+            <span class="text-base font-extrabold text-sky-300 font-mono" id="readyCountText">0 รายการ</span>
           </div>
-          <label class="flex items-center gap-1.5 text-[11px] text-slate-300 cursor-pointer mt-1 select-none">
-            <input type="checkbox" id="lightweightMemoryToggle" checked onchange="updateSaveBtnLabel()" class="rounded border-slate-700 text-sky-400 focus:ring-0">
-            <span id="lightweightLabelText">⚡ บันทึกเฉพาะตัวเลข (ไม่เก็บไฟล์รูป ประหยัดความจำ 99%)</span>
+          <label class="flex items-center gap-2 text-sm text-slate-200 font-semibold cursor-pointer mt-1.5 select-none">
+            <input type="checkbox" id="lightweightMemoryToggle" checked onchange="updateSaveBtnLabel()" class="w-4 h-4 rounded border-sky-400 text-sky-500 focus:ring-0">
+            <span id="lightweightLabelText">💾 บันทึกเฉพาะตัวเลข</span>
           </label>
         </div>
-        <div class="flex items-center justify-end gap-2 flex-wrap">
-          <button id="removeDupsBtn" type="button" onclick="removeDuplicatesFromQueue()" class="hidden px-3 py-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/30 transition flex items-center gap-1.5">
-            <i class="fa-solid fa-broom"></i>
-            <span id="removeDupsBtnText">ลบสลิปซ้ำ (0)</span>
-          </button>
-          <button onclick="clearScannedList()" class="px-3.5 py-2 text-xs text-slate-400 hover:text-white rounded-xl transition">
+        <div class="flex items-center justify-end gap-2.5 flex-wrap">
+          <button onclick="clearScannedList()" class="px-4 py-2.5 text-sm font-semibold text-slate-300 hover:text-white rounded-xl transition">
             ยกเลิก
           </button>
-          <button id="saveAllBtn" onclick="saveAllScanned()" class="px-5 py-2.5 aurora-btn text-white text-xs font-bold rounded-xl shadow-lg hover:brightness-110 transition flex items-center gap-1.5">
-            <i class="fa-solid fa-cloud-arrow-up"></i>
-            <span id="saveAllBtnText">💾 บันทึกเฉพาะตัวเลขเข้าประวัติ</span>
+          <button id="saveAllBtn" onclick="saveAllScanned()" class="px-6 py-3 aurora-btn text-white text-sm sm:text-base font-extrabold rounded-2xl shadow-xl hover:brightness-110 transition flex items-center gap-2">
+            <i class="fa-solid fa-cloud-arrow-up text-base"></i>
+            <span id="saveAllBtnText">💾 บันทึกรายการ (0 ใบ)</span>
           </button>
         </div>
       </div>
@@ -454,17 +450,17 @@
     <!-- Tab 3: Transactions History (ประวัติรายการสลิป) -->
     <section id="tab-history" class="hidden space-y-4">
       <!-- History Header Action Bar -->
-      <div class="flex items-center justify-between gap-2.5 flex-wrap">
+      <div class="flex items-center justify-between gap-2 flex-wrap">
         <div>
-          <h3 class="font-bold text-sm text-sky-100 font-cute">TRANSACTION LOG</h3>
-          <p class="text-[11px] text-slate-400">ประวัติรายการสลิปและบันทึกค่าใช้จ่าย</p>
+          <h3 class="font-black text-lg text-white font-cute">ประวัติรายการ</h3>
+          <p class="text-xs text-sky-200">บันทึกสลิปและรายจ่าย</p>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="openExportModal()" class="px-3.5 py-1.5 rounded-xl aurora-btn text-white text-xs font-bold shadow-md hover:brightness-110 transition flex items-center gap-1.5">
+          <button onclick="openExportModal()" class="px-3.5 py-2 rounded-xl aurora-btn text-white text-xs sm:text-sm font-bold shadow-md hover:brightness-110 transition flex items-center gap-1.5">
             <i class="fa-solid fa-file-image"></i>
             <span>📸 บันทึกรูปสรุป</span>
           </button>
-          <button onclick="confirmClearHistory()" class="px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700/60 hover:border-rose-500/40 text-xs font-medium transition flex items-center gap-1.5">
+          <button onclick="confirmClearHistory()" class="px-3.5 py-2 rounded-xl bg-slate-900/90 hover:bg-rose-950/80 text-rose-300 border border-rose-500/30 hover:border-rose-400 text-xs sm:text-sm font-semibold transition flex items-center gap-1.5">
             <i class="fa-solid fa-trash-can text-xs"></i>
             <span>ล้างทั้งหมด</span>
           </button>
@@ -474,28 +470,28 @@
       <div class="frost-glass p-4 rounded-2xl border border-sky-400/20 shadow-lg space-y-3">
         <!-- Search Input -->
         <div class="relative">
-          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-sky-400/60 text-xs"></i>
-          <input type="text" id="searchInput" oninput="debounceSearch()" placeholder="ค้นหาชื่อผู้รับ, ร้านค้า, เลขอ้างอิง..." class="w-full pl-9 pr-3 py-2 text-xs bg-slate-900/90 border border-sky-400/25 rounded-xl text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-sky-400 transition">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-sky-400 text-sm"></i>
+          <input type="text" id="searchInput" oninput="debounceSearch()" placeholder="ค้นหาชื่อผู้รับ, ร้านค้า, เลขอ้างอิง..." class="w-full pl-10 pr-4 py-2.5 text-sm bg-slate-900/95 border-2 border-sky-400/30 rounded-2xl text-white placeholder-slate-400 focus:outline-none focus:border-sky-400 transition">
         </div>
 
         <!-- Filter Pills -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs custom-scrollbar">
-          <button onclick="filterCategory('ทั้งหมด')" class="cat-pill active px-3.5 py-1.5 rounded-lg aurora-btn text-white font-bold whitespace-nowrap transition">
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 text-sm custom-scrollbar">
+          <button onclick="filterCategory('ทั้งหมด')" class="cat-pill active px-4 py-2 rounded-xl aurora-btn text-white font-bold whitespace-nowrap transition">
             ทั้งหมด
           </button>
-          <button onclick="filterCategory('🍔 อาหารและเครื่องดื่ม')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+          <button onclick="filterCategory('🍔 อาหารและเครื่องดื่ม')" class="cat-pill px-3.5 py-2 rounded-xl bg-slate-900 text-slate-200 hover:bg-sky-950 font-medium whitespace-nowrap border border-slate-700 transition">
             🍔 อาหาร
           </button>
-          <button onclick="filterCategory('💳 ชำระบิล/บัตรเครดิต')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+          <button onclick="filterCategory('💳 ชำระบิล/บัตรเครดิต')" class="cat-pill px-3.5 py-2 rounded-xl bg-slate-900 text-slate-200 hover:bg-sky-950 font-medium whitespace-nowrap border border-slate-700 transition">
             💳 บัตร/บิล
           </button>
-          <button onclick="filterCategory('📲 เติมเงิน & วอลเล็ต')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+          <button onclick="filterCategory('📲 เติมเงิน & วอลเล็ต')" class="cat-pill px-3.5 py-2 rounded-xl bg-slate-900 text-slate-200 hover:bg-sky-950 font-medium whitespace-nowrap border border-slate-700 transition">
             📲 เติมเงิน
           </button>
-          <button onclick="filterCategory('🎟️ เสี่ยงโชค & บันเทิง')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+          <button onclick="filterCategory('🎟️ เสี่ยงโชค & บันเทิง')" class="cat-pill px-3.5 py-2 rounded-xl bg-slate-900 text-slate-200 hover:bg-sky-950 font-medium whitespace-nowrap border border-slate-700 transition">
             🎟️ เสี่ยงโชค
           </button>
-          <button onclick="filterCategory('🛒 ช้อปปิ้ง & ของใช้')" class="cat-pill px-3 py-1.5 rounded-lg bg-slate-900/80 text-slate-300 hover:bg-sky-950/60 font-medium whitespace-nowrap border border-slate-700/50 transition">
+          <button onclick="filterCategory('🛒 ช้อปปิ้ง & ของใช้')" class="cat-pill px-3.5 py-2 rounded-xl bg-slate-900 text-slate-200 hover:bg-sky-950 font-medium whitespace-nowrap border border-slate-700 transition">
             🛒 ช้อปปิ้ง
           </button>
         </div>
@@ -514,24 +510,24 @@
     <div class="max-w-md mx-auto grid grid-cols-3 py-2 px-3">
       <!-- Nav Item 1: Dashboard -->
       <button onclick="switchTab('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center py-1 text-sky-400 transition">
-        <i class="fa-solid fa-chart-pie text-lg mb-0.5"></i>
-        <span class="text-[10px] font-bold tracking-wider">สถิติ</span>
+        <i class="fa-solid fa-chart-pie text-xl mb-0.5"></i>
+        <span class="text-xs font-bold tracking-wider">สถิติ</span>
       </button>
 
       <!-- Nav Item 2: Scan (Center Mascot Button) -->
       <button onclick="switchTab('scan')" id="nav-scan" class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-sky-300 transition">
         <div class="relative">
-          <div class="w-12 h-12 -mt-5 rounded-2xl aurora-btn text-white flex items-center justify-center text-xl frost-glow shadow-xl">
-            <span class="text-lg">🐻‍❄️</span>
+          <div class="w-14 h-14 -mt-6 rounded-2xl aurora-btn text-white flex items-center justify-center text-2xl frost-glow shadow-xl">
+            <span>🐻‍❄️</span>
           </div>
         </div>
-        <span class="text-[10px] font-bold tracking-wider mt-1">สแกนสลิป</span>
+        <span class="text-xs font-bold tracking-wider mt-1">สแกนสลิป</span>
       </button>
 
       <!-- Nav Item 3: History -->
       <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center justify-center py-1 text-slate-400 hover:text-sky-300 transition">
-        <i class="fa-solid fa-clock-rotate-left text-lg mb-0.5"></i>
-        <span class="text-[10px] font-bold tracking-wider">ประวัติ</span>
+        <i class="fa-solid fa-clock-rotate-left text-xl mb-0.5"></i>
+        <span class="text-xs font-bold tracking-wider">ประวัติ</span>
       </button>
     </div>
   </nav>
@@ -587,71 +583,72 @@
             <i class="fa-solid fa-microchip"></i>
           </div>
           <div>
-            <h3 class="font-bold text-sky-100 font-cute text-sm tracking-wide">AI VISION ENGINE CONFIG</h3>
-            <p class="text-xs text-slate-400">Google Gemini Multimodal API</p>
+            <h3 class="font-bold text-white font-cute text-base">ตั้งค่า Gemini AI</h3>
+            <p class="text-xs text-sky-200">ระบบอ่านสลิปอัจฉริยะ</p>
           </div>
         </div>
-        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-slate-200">
-          <i class="fa-solid fa-xmark text-lg"></i>
+        <button onclick="closeSettingsModal()" class="text-slate-400 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-xl"></i>
         </button>
       </div>
 
-      <div class="space-y-3.5 text-xs text-slate-300">
+      <div class="space-y-3.5 text-xs sm:text-sm text-slate-200">
         <!-- 3-Step Instruction Guide -->
-        <div class="p-3.5 rounded-2xl bg-sky-950/60 border border-sky-400/30 space-y-2.5">
+        <div class="p-3.5 rounded-2xl bg-sky-950/70 border border-sky-400/30 space-y-2.5">
           <div class="flex items-center justify-between">
-            <span class="font-bold text-sky-200 flex items-center gap-1.5 font-cute text-xs">
-              <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> วิธีขอรับ Gemini API Key (ฟรี 100%)
+            <span class="font-bold text-white flex items-center gap-1.5 font-cute text-sm">
+              <i class="fa-solid fa-wand-magic-sparkles text-amber-300"></i> วิธีรับ Gemini API Key (ฟรี)
             </span>
-            <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
+            <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/30">
               FREE
             </span>
           </div>
 
-          <div class="space-y-1.5 text-[11px] text-slate-300 leading-relaxed">
+          <div class="space-y-2 text-xs sm:text-sm text-slate-200 leading-relaxed">
             <div class="flex items-start gap-2">
-              <span class="w-4 h-4 rounded-full bg-sky-500/20 text-sky-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">1</span>
-              <span>เข้าเว็บ Google AI Studio ด้วยบัญชี Gmail ทั่วไป</span>
+              <span class="w-5 h-5 rounded-full bg-sky-500/30 text-sky-200 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">1</span>
+              <span>เข้าเว็บ Google AI Studio ด้วยบัญชี Gmail</span>
             </div>
             <div class="flex items-start gap-2">
-              <span class="w-4 h-4 rounded-full bg-sky-500/20 text-sky-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">2</span>
-              <span>กดปุ่มสีน้ำเงิน <strong>"Create API key"</strong> แล้วกด <strong>Copy</strong> รหัส (ขึ้นต้นด้วย <code class="text-amber-300 font-mono">AQ....</code> หรือ <code class="text-amber-300 font-mono">AIzaSy...</code>)</span>
+              <span class="w-5 h-5 rounded-full bg-sky-500/30 text-sky-200 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">2</span>
+              <span>กดปุ่ม <strong>"Create API key"</strong> แล้ว Copy รหัส</span>
             </div>
             <div class="flex items-start gap-2">
-              <span class="w-4 h-4 rounded-full bg-sky-500/20 text-sky-300 font-bold flex items-center justify-center text-[10px] shrink-0 mt-0.5">3</span>
-              <span>นำรหัสมาวางในช่องด้านล่าง แล้วกด <strong>"บันทึกการตั้งค่า"</strong></span>
+              <span class="w-5 h-5 rounded-full bg-sky-500/30 text-sky-200 font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">3</span>
+              <span>นำรหัสมาวางในช่องด้านล่าง แล้วกด <strong>"บันทึก"</strong></span>
             </div>
           </div>
 
-          <a href="https://aistudio.google.com/app/apikey" target="_blank" class="block w-full py-2 rounded-xl text-center font-bold text-xs bg-slate-900 hover:bg-sky-950/80 text-sky-300 border border-sky-400/40 transition">
-            <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> เปิดหน้ารับ Gemini API Key ทันที
+          <a href="https://aistudio.google.com/app/apikey" target="_blank" class="block w-full py-2.5 rounded-xl text-center font-bold text-xs sm:text-sm bg-slate-900 hover:bg-sky-950 text-sky-200 border border-sky-400/40 transition">
+            <i class="fa-solid fa-arrow-up-right-from-square mr-1"></i> เปิดหน้าเว็บรับ API Key ทันที
           </a>
         </div>
 
         <div class="space-y-1.5">
-          <label class="font-bold text-sky-200 block font-mono text-[11px] uppercase tracking-wider flex items-center justify-between">
-            <span>วาง GEMINI API KEY ที่นี่:</span>
-            <span id="keyStatusBadge" class="text-[10px] font-normal text-slate-400 font-sans"></span>
+          <label class="font-bold text-sky-100 block text-xs sm:text-sm flex items-center justify-between">
+            <span>วาง Gemini API Key ที่นี่:</span>
+            <span id="keyStatusBadge" class="text-xs font-normal text-slate-300"></span>
           </label>
           <div class="relative">
-            <input type="password" id="geminiApiKeyInput" placeholder="AQ.... หรือ AIzaSy..." class="w-full pl-3 pr-9 py-2.5 bg-slate-900 border border-sky-400/30 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-400 font-mono text-xs text-sky-100">
+            <input type="password" id="geminiApiKeyInput" placeholder="AQ.... หรือ AIzaSy..." class="w-full pl-3 pr-10 py-2.5 bg-slate-900 border-2 border-sky-400/30 rounded-xl focus:outline-none focus:border-sky-400 font-mono text-sm text-white">
             <button type="button" onclick="toggleApiKeyVisibility()" class="absolute right-3 top-2.5 text-slate-400 hover:text-sky-300">
-              <i class="fa-solid fa-eye" id="toggleEyeIcon"></i>
+              <i class="fa-solid fa-eye text-base" id="toggleEyeIcon"></i>
             </button>
           </div>
         </div>
 
-        <div class="p-2.5 bg-slate-900/60 rounded-xl border border-slate-700/60 text-slate-400 text-[10px] leading-relaxed">
-          🔒 <strong>ความปลอดภัย:</strong> API Key จะถูกบันทึกไว้ในความจำของเครื่องคุณอย่างปลอดภัย ไม่มีการส่งต่อไปยังที่อื่นนอกจากเรียกตรงไปยัง Google AI เพื่ออ่านสลิป
+        <div class="p-2.5 bg-slate-900/80 rounded-xl border border-slate-700/60 text-slate-300 text-xs leading-relaxed">
+          🔒 <strong>ความปลอดภัย:</strong> บันทึกเฉพาะในเครื่องของคุณ ไม่มีการส่งออกภายนอก
         </div>
       </div>
 
       <div class="flex items-center justify-end gap-2 pt-2">
-        <button onclick="closeSettingsModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white rounded-xl transition">
+        <button onclick="closeSettingsModal()" class="px-4 py-2.5 text-xs sm:text-sm text-slate-300 hover:text-white rounded-xl transition">
           ยกเลิก
         </button>
-        <button onclick="saveApiKey()" class="px-5 py-2 aurora-btn text-white font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition">
-          บันทึกการตั้งค่า
+        <button onclick="saveApiKey()" class="px-6 py-2.5 aurora-btn text-white font-bold text-xs sm:text-sm rounded-xl shadow-lg hover:brightness-110 transition">
+          บันทึก
+        </button>
         </button>
       </div>
     </div>
@@ -998,6 +995,39 @@
       return isNaN(num) ? defaultVal : num;
     }
 
+    // Filter self-transfers (sender == receiver)
+    function isSelfTransfer(sender, receiver) {
+      const s = safeString(sender);
+      const r = safeString(receiver);
+      if (!s || !r) return false;
+
+      function cleanName(text) {
+        let t = text.toLowerCase();
+        const prefixes = ['นาย', 'นางสาว', 'นาง', 'น.ส.', 'ด.ช.', 'ด.ญ.', 'mr.', 'mr ', 'mrs.', 'ms.', 'miss', 'คุณ', 'บจก.', 'หจก.'];
+        prefixes.forEach(p => {
+          if (t.startsWith(p)) t = t.slice(p.length).trim();
+        });
+        return t.replace(/[\s\.\*\-_/]+/g, '');
+      }
+
+      const cs = cleanName(s);
+      const cr = cleanName(r);
+      if (!cs || !cr) return false;
+      if (cs === cr) return true;
+      if (cs.length >= 4 && cr.length >= 4 && (cs.includes(cr) || cr.includes(cs))) return true;
+
+      const sParts = s.replace(/นาย|นางสาว|นาง|น\.ส\.|mr\.|mrs\.|ms\.|คุณ/gi, '').trim().split(/\s+/).map(cleanName).filter(x => x.length >= 3);
+      const rParts = r.replace(/นาย|นางสาว|นาง|น\.ส\.|mr\.|mrs\.|ms\.|คุณ/gi, '').trim().split(/\s+/).map(cleanName).filter(x => x.length >= 3);
+      for (const sp of sParts) {
+        for (const rp of rParts) {
+          if (sp === rp || (sp.length >= 4 && rp.length >= 4 && (sp.includes(rp) || rp.includes(sp)))) {
+            return true;
+          }
+        }
+      }
+      return false;
+    }
+
     // Local Storage Resilient Transaction Store
     function getStoredTransactions() {
       try {
@@ -1019,7 +1049,7 @@
 
     function calculateStatsFromList(list) {
       if (!Array.isArray(list)) list = [];
-      const validList = list.filter(Boolean);
+      const validList = list.filter(Boolean).filter(tx => !isSelfTransfer(tx.sender_name, tx.receiver_name));
       const totalAmount = validList.reduce((sum, x) => sum + (safeAmount(x.amount, 0)), 0);
       const totalCount = validList.length;
       const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
@@ -1095,7 +1125,7 @@
         }
       });
 
-      let merged = Array.from(map.values());
+      let merged = Array.from(map.values()).filter(tx => !isSelfTransfer(tx.sender_name, tx.receiver_name));
       if (month && month !== 'ทั้งหมด') {
         merged = merged.filter(x => x.date_time && x.date_time.startsWith(month));
       }
@@ -1302,11 +1332,11 @@
           });
           saveStoredTransactions(localList);
         }
-        alert('🐻‍❄️ นำเข้า 4 สลิปตัวอย่างเรียบร้อยแล้ว!');
+        alert('โหลดตัวอย่างเรียบร้อย');
         await loadDashboard();
         await loadTransactions();
       } catch (e) {
-        alert('เกิดข้อผิดพลาดในการโหลดตัวอย่าง');
+        alert('เกิดข้อผิดพลาดในการโหลด');
       }
     }
 
@@ -1514,10 +1544,14 @@
           const data = await res.json();
           if (data.status === 'success') {
             batchSuccess++;
-            scannedItems = [...data.items, ...scannedItems];
+            // Filter out self-transfers (sender == receiver)
+            const validSlips = (data.items || []).filter(item => !isSelfTransfer(item.sender_name, item.receiver_name));
+            const selfCount = (data.items || []).length - validSlips.length;
+            totalIgnored += (data.ignored_count || 0) + selfCount;
+            totalSlipsFound += validSlips.length;
+
+            scannedItems = [...validSlips, ...scannedItems];
             renderScannedCards();
-            totalSlipsFound += (data.slips_found || 0);
-            totalIgnored += (data.ignored_count || 0);
           }
         } catch (batchErr) {
           console.warn(`Error on batch ${i}:`, batchErr);
@@ -1530,16 +1564,16 @@
       // Display sweeper summary
       const summary = document.getElementById('sweeperSummary');
       summary.classList.remove('hidden');
-      document.getElementById('sweeperTitle').innerText = `ผลการกวาดรูป (ช่วง: ${rangeLabel})`;
-      let desc = `ตรวจสแกน ${totalFiles} รูป ➔ พบสลิปเงิน ${totalSlipsFound} ใบ (ข้ามรูปทั่วไป ${totalIgnored} รูป)`;
+      document.getElementById('sweeperTitle').innerText = `ผลการกวาดรูป (${rangeLabel})`;
+      let desc = `สแกน ${totalFiles} รูป • พบสลิป ${totalSlipsFound} ใบ (ข้ามรูปอื่น ${totalIgnored} รูป)`;
       if (skippedByDate > 0) {
         desc += ` • นอกช่วงเวลา ${skippedByDate} รูป`;
       }
       document.getElementById('sweeperDesc').innerText = desc;
-      document.getElementById('sweeperBadge').innerText = `${totalSlipsFound} SLIPS FOUND`;
+      document.getElementById('sweeperBadge').innerText = `${totalSlipsFound} SLIPS`;
 
       if (totalSlipsFound === 0) {
-        alert(`สแกนเสร็จสิ้น: ไม่พบสลิปธนาคารใน ${totalFiles} รูปที่เลือกมา (AI ตรวจสอบแล้วเป็นรูปทั่วไป หรือไฟล์ถูกข้าม)`);
+        alert('สแกนเสร็จสิ้น: ไม่พบสลิปโอนเงินในรูปที่เลือก');
       }
     }
 
@@ -1557,140 +1591,112 @@
       document.getElementById('readyCountText').innerText = `${scannedItems.length} รายการ`;
       updateSaveBtnLabel();
 
-      // Check duplicates count
-      const dupCount = scannedItems.filter(x => x.is_duplicate).length;
-      const removeDupsBtn = document.getElementById('removeDupsBtn');
-      if (removeDupsBtn) {
-        if (dupCount > 0) {
-          removeDupsBtn.classList.remove('hidden');
-          document.getElementById('removeDupsBtnText').innerText = `ลบสลิปซ้ำ (${dupCount})`;
-        } else {
-          removeDupsBtn.classList.add('hidden');
-        }
-      }
-
       container.innerHTML = scannedItems.map((item, index) => {
         const badgeClass = getBankBadgeClass(item.bank);
         const isSimulation = item.engine && item.engine.includes('โหมดจำลอง');
         const isError = item.engine && item.engine.includes('❌');
         const isSuccess = item.engine && item.engine.includes('Gemini AI');
-        const isDuplicate = Boolean(item.is_duplicate);
+        const isSelf = isSelfTransfer(item.sender_name, item.receiver_name);
+
         return `
-          <div class="frost-glass p-5 rounded-3xl border ${isDuplicate ? 'border-amber-400/50 shadow-amber-950/20' : 'border-sky-400/25'} shadow-xl space-y-3.5 transition">
-            <div class="flex items-start justify-between gap-2 border-b border-sky-400/15 pb-3">
+          <div class="frost-glass p-5 rounded-3xl border-2 border-sky-400/35 shadow-xl space-y-4 transition">
+            <div class="flex items-center justify-between gap-2 border-b border-sky-400/20 pb-3">
               <div class="flex items-center gap-2 min-w-0">
-                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
+                <span class="px-3 py-1 rounded-full text-xs font-black border ${badgeClass}">
                   ${item.bank || 'ไม่ระบุธนาคาร'}
                 </span>
-                <span class="text-xs text-sky-200 font-medium truncate">
+                <span class="text-sm text-sky-100 font-bold truncate">
                   ${item.transaction_type || 'รายการชำระ'}
                 </span>
               </div>
-              <div class="flex items-center gap-1">
+              <div class="flex items-center gap-2">
                 ${item.image_path ? `
-                  <button onclick="viewSlipImage('${item.image_path}')" class="p-1.5 text-sky-400 hover:text-white text-xs" title="ดูรูปสลิป">
+                  <button onclick="viewSlipImage('${item.image_path}')" class="p-2 text-sky-400 hover:text-white text-sm" title="ดูรูปสลิป">
                     <i class="fa-solid fa-eye"></i>
                   </button>
                 ` : ''}
-                <button onclick="removeScannedItem(${index})" class="p-1.5 text-slate-500 hover:text-rose-400 text-xs" title="ลบรายการนี้">
+                <button onclick="removeScannedItem(${index})" class="p-2 text-slate-400 hover:text-rose-400 text-sm" title="ลบรายการ">
                   <i class="fa-solid fa-trash"></i>
                 </button>
               </div>
             </div>
 
-            ${isDuplicate ? `
-              <div class="p-2.5 rounded-2xl bg-amber-950/70 border border-amber-500/50 text-amber-200 text-xs flex items-center justify-between gap-2 shadow-inner">
-                <div class="flex items-center gap-2 min-w-0">
-                  <i class="fa-solid fa-copy text-amber-400 text-sm shrink-0"></i>
-                  <div class="truncate">
-                    <span class="font-bold text-amber-300">⚠️ ตรวจพบสลิปซ้ำ</span>
-                    <span class="text-[11px] text-amber-100/90 block truncate">${item.duplicate_reason || 'เคยมีรายการนี้ในประวัติแล้ว'}</span>
-                  </div>
+            ${isSelf ? `
+              <div class="p-3 rounded-2xl bg-amber-950/70 border border-amber-500/50 text-amber-200 text-sm flex items-center justify-between gap-2 shadow-inner">
+                <div class="flex items-center gap-2">
+                  <i class="fa-solid fa-person-arrow-left-right text-amber-400"></i>
+                  <span class="font-bold">โอนเงินระหว่างบัญชีตนเอง (ไม่ใช่รายจ่าย)</span>
                 </div>
-                <button type="button" onclick="removeScannedItem(${index})" class="px-2.5 py-1 rounded-xl bg-amber-500/30 text-amber-300 border border-amber-500/50 text-[10px] font-bold hover:bg-amber-500/40 shrink-0">
-                  ข้ามใบนี้
+                <button type="button" onclick="removeScannedItem(${index})" class="px-3 py-1 rounded-xl bg-amber-500 text-slate-950 font-bold text-xs hover:bg-amber-400">
+                  ตัดออก
                 </button>
               </div>
             ` : ''}
 
             ${isError ? `
-              <div class="p-3 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-rose-200 text-xs space-y-1">
-                <div class="font-bold flex items-center gap-1.5 text-rose-300">
-                  <i class="fa-solid fa-circle-exclamation text-rose-400"></i>
-                  <span>${item.engine}</span>
-                </div>
-                <div class="text-[11px] text-slate-300">
-                  แตะที่ปุ่ม <button type="button" onclick="openSettingsModal()" class="text-sky-300 underline font-bold">ตั้งค่า AI</button> เพื่อตรวจสอบรหัส API Key ใหม่อีกครั้งครับ
-                </div>
+              <div class="p-2.5 rounded-xl bg-rose-950/70 border border-rose-500/40 text-rose-200 text-xs flex items-center justify-between gap-2">
+                <span>❌ ${item.engine}</span>
+                <button type="button" onclick="openSettingsModal()" class="px-2.5 py-1 rounded-lg bg-rose-500 text-white font-bold text-xs">
+                  ตั้งค่า
+                </button>
               </div>
             ` : ''}
 
             ${isSimulation ? `
-              <div class="p-2.5 rounded-xl bg-amber-950/50 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between gap-2">
-                <div class="flex items-center gap-1.5 min-w-0">
-                  <i class="fa-solid fa-triangle-exclamation text-amber-400 shrink-0"></i>
-                  <span class="truncate">ยังไม่ได้ใส่ Gemini API Key (ระบบจึงใช้โหมดจำลอง)</span>
+              <div class="p-2.5 rounded-xl bg-amber-950/60 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                  <span>โหมดจำลอง (ยังไม่ใส่ API Key)</span>
                 </div>
-                <button type="button" onclick="openSettingsModal()" class="px-2 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-[10px] shrink-0 hover:bg-amber-400 transition">
-                  ใส่ Key ตอนนี้
+                <button type="button" onclick="openSettingsModal()" class="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-xs">
+                  ใส่ Key
                 </button>
               </div>
             ` : ''}
 
             ${isSuccess ? `
-              <div class="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-[11px] flex items-center gap-1.5">
+              <div class="p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs font-semibold flex items-center gap-2">
                 <i class="fa-solid fa-circle-check text-emerald-400"></i>
-                <span>วิเคราะห์ด้วย Gemini AI สำเร็จ (อ่านตามคำว่า "บาท" และ "จำนวน")</span>
+                <span>AI อ่านข้อมูลสำเร็จ</span>
               </div>
             ` : ''}
 
             <!-- Fields row -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm">
               <div>
-                <label class="block font-bold text-sky-200 mb-1 flex items-center justify-between">
-                  <span>ยอดเงิน (บาท):</span>
-                  <span class="text-[10px] text-sky-400/80 font-normal">แตะเพื่อแก้ไขได้</span>
-                </label>
+                <label class="block font-bold text-sky-200 text-sm mb-1.5">ยอดเงิน (บาท):</label>
                 <div class="relative">
-                  <span class="absolute left-3 top-2 text-sky-400 font-bold font-mono">฿</span>
-                  <input type="number" step="0.01" value="${safeAmount(item.amount, 0)}" onchange="updateScannedField(${index}, 'amount', safeAmount(this.value, 0))" class="w-full pl-7 pr-3 py-1.5 bg-slate-900 border-2 border-sky-400/40 rounded-xl font-bold font-mono text-base text-sky-100 focus:outline-none focus:border-sky-300 transition">
+                  <span class="absolute left-3.5 top-2.5 text-sky-400 font-black text-lg font-mono">฿</span>
+                  <input type="number" step="0.01" value="${safeAmount(item.amount, 0)}" onchange="updateScannedField(${index}, 'amount', safeAmount(this.value, 0))" class="w-full pl-9 pr-3 py-2.5 bg-slate-950 border-2 border-sky-400/60 rounded-2xl font-black font-mono text-xl text-white focus:outline-none focus:border-sky-300 transition shadow-inner">
                 </div>
               </div>
 
               <div>
-                <label class="block font-medium text-sky-200/80 mb-1">หมวดหมู่:</label>
-                <select onchange="updateScannedField(${index}, 'category', this.value)" class="w-full p-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
+                <label class="block font-bold text-sky-200 text-sm mb-1.5">หมวดหมู่:</label>
+                <select onchange="updateScannedField(${index}, 'category', this.value)" class="w-full px-3 py-2.5 bg-slate-950 border border-sky-400/40 rounded-2xl text-white font-semibold text-sm focus:outline-none">
                   ${CATEGORIES.map(cat => `<option value="${cat}" ${item.category === cat ? 'selected' : ''}>${cat}</option>`).join('')}
                 </select>
               </div>
 
               <div>
-                <label class="block font-medium text-sky-200/80 mb-1">ผู้รับ / ร้านค้า:</label>
-                <input type="text" value="${safeString(item.receiver_name, '')}" onchange="updateScannedField(${index}, 'receiver_name', this.value)" class="w-full px-3 py-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
+                <label class="block font-bold text-sky-200 text-sm mb-1.5">ผู้รับ / ร้านค้า:</label>
+                <input type="text" value="${safeString(item.receiver_name, '')}" onchange="updateScannedField(${index}, 'receiver_name', this.value)" class="w-full px-3 py-2.5 bg-slate-950 border border-sky-400/40 rounded-2xl text-white font-semibold text-sm focus:outline-none">
               </div>
 
               <div>
-                <label class="block font-medium text-sky-200/80 mb-1">วันและเวลา:</label>
-                <input type="text" value="${safeString(item.date_time, '')}" onchange="updateScannedField(${index}, 'date_time', this.value)" placeholder="YYYY-MM-DD HH:MM:SS" class="w-full px-3 py-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
+                <label class="block font-bold text-sky-200 text-sm mb-1.5">วันและเวลา:</label>
+                <input type="text" value="${safeString(item.date_time, '')}" onchange="updateScannedField(${index}, 'date_time', this.value)" placeholder="YYYY-MM-DD HH:MM:SS" class="w-full px-3 py-2.5 bg-slate-950 border border-sky-400/40 rounded-2xl text-white font-semibold text-sm focus:outline-none">
               </div>
             </div>
 
             <!-- Notes & Ref ID -->
-            <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1">
+            <div class="text-xs text-slate-400 flex items-center justify-between pt-1">
               <span class="font-mono truncate mr-2">Ref: ${safeString(item.ref_id, '-')}</span>
-              <span class="text-sky-300 bg-sky-950/40 border border-sky-400/20 px-2 py-0.5 rounded-full font-mono shrink-0">${item.engine || 'AI'}</span>
+              <span class="text-sky-300 bg-sky-950/60 border border-sky-400/30 px-2.5 py-0.5 rounded-full font-mono text-xs shrink-0">${item.engine || 'AI'}</span>
             </div>
           </div>
         `;
       }).join('');
-    }
-
-    function removeDuplicatesFromQueue() {
-      const originalCount = scannedItems.length;
-      scannedItems = scannedItems.filter(item => !item.is_duplicate);
-      const removed = originalCount - scannedItems.length;
-      renderScannedCards();
-      alert(`🧹 ลบสลิปที่ตรวจพบว่าซ้ำออกเรียบร้อยแล้ว ${removed} ใบ (เหลือสลิปใหม่พร้อมบันทึก ${scannedItems.length} ใบ)`);
     }
 
     function updateScannedField(index, field, value) {
@@ -1741,28 +1747,21 @@
       const btnText = document.getElementById('saveAllBtnText');
       if (btnText) {
         if (isLightweight) {
-          btnText.innerText = `💾 บันทึกเฉพาะตัวเลขเข้าประวัติ (${count} ใบ)`;
+          btnText.innerText = `💾 บันทึกเฉพาะตัวเลข (${count} ใบ)`;
         } else {
-          btnText.innerText = `🖼️ บันทึกพร้อมรูปสลิปเข้าประวัติ (${count} ใบ)`;
+          btnText.innerText = `🖼️ บันทึกพร้อมรูป (${count} ใบ)`;
         }
       }
     }
 
     async function saveAllScanned() {
-      if (scannedItems.length === 0) return;
+      if (!scannedItems || scannedItems.length === 0) return;
 
-      // Duplicate check prompt
-      const dupCount = scannedItems.filter(x => x.is_duplicate).length;
-      let itemsToSave = [...scannedItems];
-      if (dupCount > 0) {
-        const skip = confirm(`ตรวจพบสลิปซ้ำ ${dupCount} ใบ\n\nต้องการ "ข้ามสลิปซ้ำ" เพื่อป้องกันการบันทึกยอดซ้ำซ้อนหรือไม่?\n\n• กด ตกลง (OK) = ข้ามสลิปซ้ำ (บันทึกเฉพาะสลิปใหม่ ${itemsToSave.length - dupCount} ใบ)\n• กด ยกเลิก (Cancel) = บันทึกทั้งหมด`);
-        if (skip) {
-          itemsToSave = itemsToSave.filter(x => !x.is_duplicate);
-          if (itemsToSave.length === 0) {
-            alert('สลิปที่เลือกมาทั้งหมดเป็นสลิปซ้ำ จึงไม่มีรายการใหม่ให้บันทึกครับ');
-            return;
-          }
-        }
+      // กรองรายการโอนระหว่างบัญชีตนเองออก
+      let itemsToSave = scannedItems.filter(item => !isSelfTransfer(item.sender_name, item.receiver_name));
+      if (itemsToSave.length === 0) {
+        alert('รายการทั้งหมดเป็นโอนเงินระหว่างบัญชีตนเอง จึงไม่มีรายจ่ายให้บันทึก');
+        return;
       }
 
       const saveBar = document.getElementById('saveAllBar');
@@ -1831,14 +1830,14 @@
 
         saveStoredTransactions(localList);
 
-        alert(`❄️ บันทึกข้อมูลสำเร็จครบทั้ง ${savedCount} รายการ!\n(ยอดเงินถูกเพิ่มในประวัติและระบบคำนวณเรียบร้อยแล้ว)`);
+        alert(`บันทึกสำเร็จ ${savedCount} รายการ`);
         scannedItems = [];
         renderScannedCards();
         await loadDashboard();
         await loadTransactions();
         switchTab('history');
       } catch (err) {
-        alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
+        alert('เกิดข้อผิดพลาด: ' + err.message);
       } finally {
         saveBar.classList.remove('opacity-75', 'pointer-events-none');
       }
@@ -1902,7 +1901,7 @@
         const txId = tx.id || 0;
 
         return `
-          <div class="frost-glass p-4 rounded-2xl border border-sky-400/20 shadow-lg hover:border-sky-400/40 transition flex items-center justify-between gap-3">
+          <div class="frost-glass p-3.5 sm:p-4 rounded-2xl border border-sky-400/20 shadow-lg hover:border-sky-400/40 transition flex items-center justify-between gap-3">
             <!-- Left Info -->
             <div class="flex items-center gap-3 min-w-0">
               <!-- Slip thumbnail -->
@@ -1913,37 +1912,37 @@
                     <i class="fa-solid fa-eye"></i>
                   </div>
                 ` : `
-                  <i class="fa-solid fa-receipt text-sky-400/40 text-lg"></i>
+                  <i class="fa-solid fa-receipt text-sky-400/50 text-xl"></i>
                 `}
               </div>
 
               <div class="min-w-0">
-                <div class="flex items-center gap-1.5 mb-0.5">
-                  <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border ${badgeClass}">
+                <div class="flex items-center gap-2 mb-0.5">
+                  <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${badgeClass}">
                     ${bankName}
                   </span>
-                  <span class="text-[10px] text-slate-400 font-mono truncate">${dateTime}</span>
+                  <span class="text-xs text-slate-300 font-mono truncate">${dateTime}</span>
                 </div>
-                <div class="font-bold text-xs sm:text-sm text-slate-100 truncate">
+                <div class="font-bold text-sm sm:text-base text-white truncate">
                   ${receiverName}
                 </div>
-                <div class="text-[10px] text-sky-300/70 flex items-center gap-2">
+                <div class="text-xs text-sky-200/90 flex items-center gap-2 mt-0.5">
                   <span>${categoryName}</span>
-                  ${noteText ? `<span class="text-slate-600">•</span><span class="truncate text-slate-400">${noteText}</span>` : ''}
+                  ${noteText ? `<span class="text-slate-500">•</span><span class="truncate text-slate-300">${noteText}</span>` : ''}
                 </div>
               </div>
             </div>
 
             <!-- Right: Amount & Delete -->
-            <div class="flex items-center gap-3 shrink-0 text-right">
+            <div class="flex items-center gap-2 sm:gap-3 shrink-0 text-right">
               <div>
-                <div class="text-sm sm:text-base font-extrabold frost-gradient-text font-mono">
+                <div class="text-base sm:text-lg font-black text-emerald-300 font-mono">
                   ฿${amountNum.toLocaleString('th-TH', {minimumFractionDigits: 2})}
                 </div>
-                <div class="text-[9px] text-slate-400">${txType}</div>
+                <div class="text-[11px] text-slate-400 font-medium">${txType}</div>
               </div>
-              <button onclick="deleteTransactionItem(${txId}, '${refId}')" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 flex items-center justify-center transition" title="ลบรายการ">
-                <i class="fa-solid fa-trash-can text-xs"></i>
+              <button onclick="deleteTransactionItem(${txId}, '${refId}')" class="w-8 h-8 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-950/60 flex items-center justify-center transition" title="ลบรายการ">
+                <i class="fa-solid fa-trash-can text-sm"></i>
               </button>
             </div>
           </div>
@@ -1956,10 +1955,10 @@
       document.querySelectorAll('.cat-pill').forEach(btn => {
         if (btn.innerText.includes(cat) || (cat === 'ทั้งหมด' && btn.innerText === 'ทั้งหมด')) {
           btn.classList.add('aurora-btn', 'text-white', 'font-bold');
-          btn.classList.remove('bg-slate-900/80', 'text-slate-300');
+          btn.classList.remove('bg-slate-900', 'text-slate-200');
         } else {
           btn.classList.remove('aurora-btn', 'text-white', 'font-bold');
-          btn.classList.add('bg-slate-900/80', 'text-slate-300');
+          btn.classList.add('bg-slate-900', 'text-slate-200');
         }
       });
       loadTransactions();
@@ -1973,7 +1972,7 @@
     }
 
     async function deleteTransactionItem(id, refId = '') {
-      if (!confirm('ยืนยันลบรายการสลิปนี้?')) return;
+      if (!confirm('ยืนยันลบรายการนี้?')) return;
       try {
         if (id && id > 0) {
           await fetch(`/api/transactions/${id}`, {method: 'DELETE'});
@@ -1995,7 +1994,7 @@
 
     // Clear All Transactions
     async function confirmClearHistory() {
-      const sure = confirm('⚠️ คำเตือนสำคัญ:\nคุณต้องการล้างประวัติรายการสลิปและข้อมูลรายจ่ายทั้งหมดใช่หรือไม่?\n\n(ยอดรวมจะถูกรีเซ็ตเป็น 0 และไม่สามารถกู้คืนได้)');
+      const sure = confirm('ยืนยันล้างประวัติและยอดเงินทั้งหมด?');
       if (!sure) return;
 
       try {
@@ -2006,7 +2005,7 @@
 
       saveStoredTransactions([]);
 
-      alert('🗑️ ล้างประวัติรายจ่ายทั้งหมดเรียบร้อยแล้ว');
+      alert('ล้างประวัติเรียบร้อยแล้ว');
       await loadDashboard();
       await loadTransactions();
     }

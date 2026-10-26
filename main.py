@@ -192,34 +192,15 @@ async def upload_and_analyze(
             data["original_filename"] = filename
             data["engine"] = analysis.get("engine", "Unknown")
 
-            # Check duplicate in database or in current batch
-            ref_id = data.get("ref_id", "")
-            amount = db.sanitize_amount(data.get("amount", 0.0))
-            data["amount"] = amount
-            date_time = data.get("date_time", "")
-            bank = data.get("bank", "")
+            # Filter out self-transfer (transfer between own accounts)
+            sender = data.get("sender_name", "")
             receiver = data.get("receiver_name", "")
-
-            dup = db.check_duplicate_transaction(
-                ref_id=ref_id,
-                amount=amount,
-                date_time=date_time,
-                bank=bank,
-                receiver_name=receiver
-            )
-
-            fingerprint = f"{amount:.2f}_{date_time[:10] if date_time else ''}_{bank}"
-            is_batch_dup = fingerprint in batch_fingerprints
-            batch_fingerprints.add(fingerprint)
-
-            if dup:
-                data["is_duplicate"] = True
-                data["duplicate_reason"] = f"พบสลิปซ้ำ (เคยบันทึกแล้ว ยอด ฿{dup['amount']:,.2f} วันที่ {dup.get('date_time', '')[:10]})"
-            elif is_batch_dup:
-                data["is_duplicate"] = True
-                data["duplicate_reason"] = "พบสลิปซ้ำ (มีรูปสลิปนี้ซ้ำในชุดที่อัปโหลด)"
-            else:
-                data["is_duplicate"] = False
+            if db.is_self_transfer(sender, receiver):
+                ignored.append({
+                    "filename": filename,
+                    "reason": f"โอนเงินระหว่างบัญชีตนเอง ({sender} -> {receiver})"
+                })
+                continue
 
             results.append(data)
         except Exception as e:

@@ -32,6 +32,50 @@ def sanitize_str(val: Any) -> str:
         return " ".join(str(v) for v in val).strip()
     return str(val).strip()
 
+def is_self_transfer(sender: Any, receiver: Any) -> bool:
+    """Detect if sender and receiver are the same person (transfer between own accounts)."""
+    s = sanitize_str(sender)
+    r = sanitize_str(receiver)
+    if not s or not r:
+        return False
+
+    def clean_name(text: str) -> str:
+        t = text.lower()
+        for p in ["นาย", "นางสาว", "นาง", "น.ส.", "ด.ช.", "ด.ญ.", "mr.", "mr ", "mrs.", "ms.", "miss", "คุณ", "บจก.", "หจก."]:
+            if t.startswith(p):
+                t = t[len(p):].strip()
+        t = re.sub(r"[\s\.\*\-_/]+", "", t)
+        return t
+
+    cs = clean_name(s)
+    cr = clean_name(r)
+    if not cs or not cr:
+        return False
+
+    if cs == cr:
+        return True
+
+    if len(cs) >= 4 and len(cr) >= 4:
+        if cs in cr or cr in cs:
+            return True
+
+    def get_tokens(text: str) -> List[str]:
+        cleaned = text.lower()
+        for p in ["นาย", "นางสาว", "นาง", "น.ส.", "ด.ช.", "ด.ญ.", "mr.", "mr ", "mrs.", "ms.", "miss", "คุณ"]:
+            if cleaned.startswith(p):
+                cleaned = cleaned[len(p):].strip()
+        parts = cleaned.split()
+        return [clean_name(p) for p in parts if len(clean_name(p)) >= 3]
+
+    s_tokens = get_tokens(s)
+    r_tokens = get_tokens(r)
+    for st in s_tokens:
+        for rt in r_tokens:
+            if st == rt or (len(st) >= 4 and len(rt) >= 4 and (st in rt or rt in st)):
+                return True
+
+    return False
+
 def get_db_path() -> str:
     """Find a writable database path (supports local, Render, Vercel serverless, etc.)."""
     local_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "expenses.db")

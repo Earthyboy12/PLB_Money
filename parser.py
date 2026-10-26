@@ -5,7 +5,7 @@ import re
 from datetime import datetime
 from typing import Dict, Any, Optional, Union
 import httpx
-from database import get_setting
+from database import get_setting, is_self_transfer
 
 # Known samples mapping for offline/immediate test without requiring API key
 KNOWN_SAMPLES = [
@@ -280,6 +280,15 @@ def analyze_slip(image_data: Union[str, bytes], filename: str = "", api_key_over
                 parsed["sender_name"] = " ".join(parts).strip()
             elif send is not None:
                 parsed["sender_name"] = str(send).strip()
+
+            # Filter out self-transfers (transferring between own accounts)
+            if is_self_transfer(parsed.get("sender_name"), parsed.get("receiver_name")):
+                return {
+                    "success": True,
+                    "is_slip": False,
+                    "engine": "🤖 Gemini AI Vision",
+                    "reason": "โอนเงินระหว่างบัญชีตนเอง (ไม่ใช่รายจ่าย)"
+                }
 
             return {
                 "success": True,
