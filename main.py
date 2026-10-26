@@ -194,7 +194,8 @@ async def upload_and_analyze(
 
             # Check duplicate in database or in current batch
             ref_id = data.get("ref_id", "")
-            amount = float(data.get("amount", 0.0))
+            amount = db.sanitize_amount(data.get("amount", 0.0))
+            data["amount"] = amount
             date_time = data.get("date_time", "")
             bank = data.get("bank", "")
             receiver = data.get("receiver_name", "")
@@ -359,7 +360,7 @@ def seed_samples():
     ]
     for rec in sample_records:
         db.add_transaction(rec)
-    return {"status": "success", "message": "โหลด 4 สลิปตัวอย่างเรียบร้อย"}
+    return {"status": "success", "message": "โหลด 4 สลิปตัวอย่างเรียบร้อย", "samples": sample_records}
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

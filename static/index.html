@@ -430,9 +430,9 @@
             <span class="text-[10px] text-slate-400 uppercase tracking-wider block">สลิปที่พร้อมบันทึก:</span>
             <span class="text-sm font-bold text-sky-300 font-mono" id="readyCountText">0 รายการ</span>
           </div>
-          <label class="flex items-center gap-1.5 text-[11px] text-slate-300 cursor-pointer mt-1">
-            <input type="checkbox" id="lightweightMemoryToggle" checked class="rounded border-slate-700 text-sky-400 focus:ring-0">
-            <span>⚡ บันทึกเฉพาะตัวเลข (ไม่เก็บไฟล์รูป ประหยัดความจำ 99%)</span>
+          <label class="flex items-center gap-1.5 text-[11px] text-slate-300 cursor-pointer mt-1 select-none">
+            <input type="checkbox" id="lightweightMemoryToggle" checked onchange="updateSaveBtnLabel()" class="rounded border-slate-700 text-sky-400 focus:ring-0">
+            <span id="lightweightLabelText">⚡ บันทึกเฉพาะตัวเลข (ไม่เก็บไฟล์รูป ประหยัดความจำ 99%)</span>
           </label>
         </div>
         <div class="flex items-center justify-end gap-2 flex-wrap">
@@ -443,8 +443,9 @@
           <button onclick="clearScannedList()" class="px-3.5 py-2 text-xs text-slate-400 hover:text-white rounded-xl transition">
             ยกเลิก
           </button>
-          <button onclick="saveAllScanned()" class="px-5 py-2.5 aurora-btn text-white text-xs font-bold rounded-xl shadow-lg hover:brightness-110 transition flex items-center gap-1.5">
-            <i class="fa-solid fa-check"></i> บันทึกเข้าบัญชีทั้งหมด
+          <button id="saveAllBtn" onclick="saveAllScanned()" class="px-5 py-2.5 aurora-btn text-white text-xs font-bold rounded-xl shadow-lg hover:brightness-110 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-cloud-arrow-up"></i>
+            <span id="saveAllBtnText">💾 บันทึกเฉพาะตัวเลขเข้าประวัติ</span>
           </button>
         </div>
       </div>
@@ -972,34 +973,130 @@
       }
     }
 
-    // Load Dashboard Stats
-    async function loadDashboard() {
+    // Local Storage Resilient Transaction Store
+    function getStoredTransactions() {
       try {
-        const res = await fetch('/api/stats');
-        const data = await res.json();
+        const raw = localStorage.getItem('plb_transactions');
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
 
-        // Update KPIs
-        document.getElementById('kpiTotalAmount').innerText = `฿${data.total_amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
-        document.getElementById('kpiTotalCount').innerText = `${data.total_count} รายการ`;
-        document.getElementById('kpiAvgAmount').innerText = `฿${data.avg_amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+    function saveStoredTransactions(list) {
+      try {
+        localStorage.setItem('plb_transactions', JSON.stringify(list));
+      } catch (e) {
+        console.warn('Failed to save to localStorage', e);
+      }
+    }
 
-        // Top Category
-        if (data.categories && data.categories.length > 0) {
-          const top = data.categories[0];
-          document.getElementById('kpiTopCategory').innerText = `${top.category} (฿${top.total.toLocaleString('th-TH')})`;
-          document.getElementById('seedBanner').classList.add('hidden');
-        } else {
-          document.getElementById('kpiTopCategory').innerText = '-';
-          document.getElementById('seedBanner').classList.remove('hidden');
+    function calculateStatsFromList(list) {
+      const totalAmount = list.reduce((sum, x) => sum + (parseFloat(x.amount) || 0), 0);
+      const totalCount = list.length;
+      const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
+
+      const catMap = {};
+      const bankMap = {};
+      const dayMap = {};
+      const recMap = {};
+
+      list.forEach(item => {
+        const amt = parseFloat(item.amount) || 0;
+        const cat = item.category || '🍔 อาหารและเครื่องดื่ม';
+        catMap[cat] = (catMap[cat] || 0) + amt;
+
+        const bank = item.bank || 'ไม่ระบุ';
+        bankMap[bank] = (bankMap[bank] || 0) + amt;
+
+        if (item.date_time && item.date_time.length >= 10) {
+          const day = item.date_time.slice(0, 10);
+          dayMap[day] = (dayMap[day] || 0) + amt;
         }
 
-        renderCategoryChart(data.categories);
-        renderTimelineChart(data.daily);
-        renderCategoryList(data.categories, data.total_amount);
-        renderTopReceivers(data.top_receivers);
+        if (item.receiver_name) {
+          const rec = typeof item.receiver_name === 'object' ? Object.values(item.receiver_name).join(' ') : String(item.receiver_name);
+          recMap[rec] = (recMap[rec] || 0) + amt;
+        }
+      });
+
+      const categories = Object.keys(catMap).map(k => ({ category: k, total: catMap[k], count: list.filter(x => x.category === k).length })).sort((a, b) => b.total - a.total);
+      const banks = Object.keys(bankMap).map(k => ({ bank: k, total: bankMap[k], count: list.filter(x => x.bank === k).length })).sort((a, b) => b.total - a.total);
+      const daily = Object.keys(dayMap).sort().map(k => ({ day: k, total: dayMap[k], count: list.filter(x => (x.date_time || '').slice(0, 10) === k).length }));
+      const top_receivers = Object.keys(recMap).map(k => ({ receiver_name: k, total: recMap[k], count: list.filter(x => x.receiver_name === k).length })).sort((a, b) => b.total - a.total).slice(0, 5);
+
+      return {
+        total_amount: Math.round(totalAmount * 100) / 100,
+        total_count: totalCount,
+        avg_amount: Math.round(avgAmount * 100) / 100,
+        categories,
+        banks,
+        daily,
+        top_receivers
+      };
+    }
+
+    // Merged Transactions Provider (Dual SQLite + LocalStorage Sync)
+    async function getAllTransactionsMerged(month = null) {
+      let serverList = [];
+      try {
+        let url = `/api/transactions`;
+        if (month && month !== 'ทั้งหมด') {
+          url += `?month=${encodeURIComponent(month)}`;
+        }
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          serverList = data.transactions || [];
+        }
       } catch (e) {
-        console.error('Error loading dashboard stats', e);
+        console.warn('Backend fetch failed, using local store', e);
       }
+
+      const localList = getStoredTransactions();
+      const map = new Map();
+      serverList.forEach(tx => {
+        const key = tx.ref_id || String(tx.id);
+        map.set(key, tx);
+      });
+      localList.forEach(tx => {
+        const key = tx.ref_id || String(tx.id);
+        if (!map.has(key)) {
+          map.set(key, tx);
+        }
+      });
+
+      let merged = Array.from(map.values());
+      if (month && month !== 'ทั้งหมด') {
+        merged = merged.filter(x => x.date_time && x.date_time.startsWith(month));
+      }
+      return merged;
+    }
+
+    // Load Dashboard Stats
+    async function loadDashboard() {
+      const allTx = await getAllTransactionsMerged();
+      const data = calculateStatsFromList(allTx);
+
+      // Update KPIs
+      document.getElementById('kpiTotalAmount').innerText = `฿${(data.total_amount || 0).toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      document.getElementById('kpiTotalCount').innerText = `${data.total_count || 0} รายการ`;
+      document.getElementById('kpiAvgAmount').innerText = `฿${(data.avg_amount || 0).toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+
+      // Top Category
+      if (data.categories && data.categories.length > 0) {
+        const top = data.categories[0];
+        document.getElementById('kpiTopCategory').innerText = `${top.category} (฿${top.total.toLocaleString('th-TH')})`;
+        document.getElementById('seedBanner').classList.add('hidden');
+      } else {
+        document.getElementById('kpiTopCategory').innerText = '-';
+        document.getElementById('seedBanner').classList.remove('hidden');
+      }
+
+      renderCategoryChart(data.categories || []);
+      renderTimelineChart(data.daily || []);
+      renderCategoryList(data.categories || [], data.total_amount || 0);
+      renderTopReceivers(data.top_receivers || []);
     }
 
     // Render Polar Arctic Dark Charts
@@ -1167,9 +1264,18 @@
       try {
         const res = await fetch('/api/seed-samples', {method: 'POST'});
         const data = await res.json();
+        if (data.samples && Array.isArray(data.samples)) {
+          const localList = getStoredTransactions();
+          data.samples.forEach(s => {
+            if (!localList.some(x => x.ref_id === s.ref_id)) {
+              localList.push(s);
+            }
+          });
+          saveStoredTransactions(localList);
+        }
         alert('🐻‍❄️ นำเข้า 4 สลิปตัวอย่างเรียบร้อยแล้ว!');
-        loadDashboard();
-        loadTransactions();
+        await loadDashboard();
+        await loadTransactions();
       } catch (e) {
         alert('เกิดข้อผิดพลาดในการโหลดตัวอย่าง');
       }
@@ -1420,6 +1526,7 @@
 
       saveBar.classList.remove('hidden');
       document.getElementById('readyCountText').innerText = `${scannedItems.length} รายการ`;
+      updateSaveBtnLabel();
 
       // Check duplicates count
       const dupCount = scannedItems.filter(x => x.is_duplicate).length;
@@ -1599,6 +1706,19 @@
       });
     }
 
+    function updateSaveBtnLabel() {
+      const isLightweight = document.getElementById('lightweightMemoryToggle') ? document.getElementById('lightweightMemoryToggle').checked : true;
+      const count = scannedItems ? scannedItems.length : 0;
+      const btnText = document.getElementById('saveAllBtnText');
+      if (btnText) {
+        if (isLightweight) {
+          btnText.innerText = `💾 บันทึกเฉพาะตัวเลขเข้าประวัติ (${count} ใบ)`;
+        } else {
+          btnText.innerText = `🖼️ บันทึกพร้อมรูปสลิปเข้าประวัติ (${count} ใบ)`;
+        }
+      }
+    }
+
     async function saveAllScanned() {
       if (scannedItems.length === 0) return;
 
@@ -1624,10 +1744,29 @@
       const totalToSave = itemsToSave.length;
       const isLightweight = document.getElementById('lightweightMemoryToggle') ? document.getElementById('lightweightMemoryToggle').checked : true;
 
+      const localList = getStoredTransactions();
+
       try {
         for (let i = 0; i < totalToSave; i++) {
-          const item = {...itemsToSave[i]};
+          const rawItem = itemsToSave[i];
+          const item = { ...rawItem };
           readyText.innerText = `กำลังบันทึก ${i + 1}/${totalToSave}...`;
+
+          // Clean values
+          item.amount = parseFloat(String(item.amount || 0).replace(/,/g, '').replace(/฿/g, '').replace(/บาท/g, '').trim()) || 0;
+          item.fee = parseFloat(String(item.fee || 0).replace(/,/g, '').replace(/฿/g, '').replace(/บาท/g, '').trim()) || 0;
+          item.receiver_name = typeof item.receiver_name === 'object' ? Object.values(item.receiver_name).join(' ') : String(item.receiver_name || '').trim();
+          item.sender_name = typeof item.sender_name === 'object' ? Object.values(item.sender_name).join(' ') : String(item.sender_name || '').trim();
+          item.bank = String(item.bank || 'ไม่ระบุ').trim();
+          item.category = String(item.category || '🍔 อาหารและเครื่องดื่ม').trim();
+          item.transaction_type = String(item.transaction_type || 'โอนเงิน').trim();
+          item.note = String(item.note || '').trim();
+          item.date_time = String(item.date_time || new Date().toISOString().replace('T', ' ').slice(0, 19)).trim();
+          if (!item.ref_id || !String(item.ref_id).trim()) {
+            item.ref_id = 'PLB' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+          } else {
+            item.ref_id = String(item.ref_id).trim();
+          }
 
           // Memory optimization: do NOT save heavy base64 images if lightweight mode is on
           if (isLightweight) {
@@ -1636,25 +1775,41 @@
             item.image_path = await shrinkDataUrl(item.image_path, 320);
           }
 
-          const res = await fetch('/api/save-transaction', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(item)
-          });
+          let savedId = null;
+          try {
+            const res = await fetch('/api/save-transaction', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify(item)
+            });
+            if (res.ok) {
+              const resJson = await res.json();
+              savedId = resJson.id;
+            }
+          } catch (serverErr) {
+            console.warn('Backend save failed, keeping client copy', serverErr);
+          }
 
-          if (!res.ok) {
-            const errText = await res.text();
-            throw new Error(`เซิร์ฟเวอร์ปฏิเสธการบันทึกรายการที่ ${i + 1} (${res.status}): ${errText.slice(0, 60)}`);
+          item.id = savedId || (Date.now() + i);
+
+          // Update local storage
+          const existingIdx = localList.findIndex(x => (x.ref_id && x.ref_id === item.ref_id) || (x.id && x.id === item.id));
+          if (existingIdx >= 0) {
+            localList[existingIdx] = item;
+          } else {
+            localList.unshift(item);
           }
 
           savedCount++;
         }
 
-        alert(`❄️ บันทึกข้อมูลสำเร็จครบทั้ง ${savedCount} รายการ!`);
+        saveStoredTransactions(localList);
+
+        alert(`❄️ บันทึกข้อมูลสำเร็จครบทั้ง ${savedCount} รายการ!\n(ยอดเงินถูกเพิ่มในประวัติและระบบคำนวณเรียบร้อยแล้ว)`);
         scannedItems = [];
         renderScannedCards();
-        loadDashboard();
-        loadTransactions();
+        await loadDashboard();
+        await loadTransactions();
         switchTab('history');
       } catch (err) {
         alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
@@ -1665,22 +1820,27 @@
 
     // Transactions History Flow
     async function loadTransactions() {
-      const search = document.getElementById('searchInput').value.trim();
-      let url = `/api/transactions?`;
+      const search = (document.getElementById('searchInput') ? document.getElementById('searchInput').value : '').trim().toLowerCase();
+      let list = await getAllTransactionsMerged();
+
       if (currentCategoryFilter !== 'ทั้งหมด') {
-        url += `category=${encodeURIComponent(currentCategoryFilter)}&`;
-      }
-      if (search) {
-        url += `search=${encodeURIComponent(search)}&`;
+        list = list.filter(tx => tx.category === currentCategoryFilter);
       }
 
-      try {
-        const res = await fetch(url);
-        const data = await res.json();
-        renderTransactionsList(data.transactions);
-      } catch (e) {
-        console.error('Error fetching transactions', e);
+      if (search) {
+        list = list.filter(tx =>
+          (tx.receiver_name && String(tx.receiver_name).toLowerCase().includes(search)) ||
+          (tx.bank && String(tx.bank).toLowerCase().includes(search)) ||
+          (tx.note && String(tx.note).toLowerCase().includes(search)) ||
+          (tx.ref_id && String(tx.ref_id).toLowerCase().includes(search)) ||
+          (String(tx.amount).includes(search))
+        );
       }
+
+      // Sort descending by date
+      list.sort((a, b) => (b.date_time || '').localeCompare(a.date_time || ''));
+
+      renderTransactionsList(list);
     }
 
     function renderTransactionsList(list) {
@@ -1740,11 +1900,11 @@
             <div class="flex items-center gap-3 shrink-0 text-right">
               <div>
                 <div class="text-sm sm:text-base font-extrabold frost-gradient-text font-mono">
-                  ฿${tx.amount.toLocaleString('th-TH', {minimumFractionDigits: 2})}
+                  ฿${Number(tx.amount || 0).toLocaleString('th-TH', {minimumFractionDigits: 2})}
                 </div>
-                <div class="text-[9px] text-slate-400">${tx.transaction_type}</div>
+                <div class="text-[9px] text-slate-400">${tx.transaction_type || 'โอนเงิน'}</div>
               </div>
-              <button onclick="deleteTransactionItem(${tx.id})" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 flex items-center justify-center transition" title="ลบรายการ">
+              <button onclick="deleteTransactionItem(${tx.id || 0}, '${tx.ref_id || ''}')" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 flex items-center justify-center transition" title="ลบรายการ">
                 <i class="fa-solid fa-trash-can text-xs"></i>
               </button>
             </div>
@@ -1774,18 +1934,25 @@
       }, 300);
     }
 
-    async function deleteTransactionItem(id) {
+    async function deleteTransactionItem(id, refId = '') {
       if (!confirm('ยืนยันลบรายการสลิปนี้?')) return;
       try {
-        const res = await fetch(`/api/transactions/${id}`, {method: 'DELETE'});
-        const data = await res.json();
-        if (data.status === 'success') {
-          loadTransactions();
-          loadDashboard();
+        if (id && id > 0) {
+          await fetch(`/api/transactions/${id}`, {method: 'DELETE'});
         }
       } catch (e) {
-        alert('เกิดข้อผิดพลาดในการลบรายการ');
+        console.warn('Backend delete failed', e);
       }
+      // Remove from localStorage
+      const localList = getStoredTransactions().filter(tx => {
+        if (id && tx.id === id) return false;
+        if (refId && tx.ref_id === refId) return false;
+        return true;
+      });
+      saveStoredTransactions(localList);
+
+      await loadTransactions();
+      await loadDashboard();
     }
 
     // Clear All Transactions
@@ -1794,14 +1961,16 @@
       if (!sure) return;
 
       try {
-        const res = await fetch('/api/transactions/clear', { method: 'POST' });
-        const data = await res.json();
-        alert(`🗑️ ล้างประวัติรายจ่ายทั้งหมดเรียบร้อยแล้ว (${data.deleted_count || 0} รายการ)`);
-        loadDashboard();
-        loadTransactions();
+        await fetch('/api/transactions/clear', { method: 'POST' });
       } catch (e) {
-        alert('เกิดข้อผิดพลาดในการล้างประวัติ: ' + e.message);
+        console.warn('Backend clear history error', e);
       }
+
+      saveStoredTransactions([]);
+
+      alert('🗑️ ล้างประวัติรายจ่ายทั้งหมดเรียบร้อยแล้ว');
+      await loadDashboard();
+      await loadTransactions();
     }
 
     // Modal Image Preview
@@ -1821,13 +1990,29 @@
 
       // Populate available months dropdown
       try {
-        const res = await fetch('/api/months');
-        const data = await res.json();
+        let months = [];
+        try {
+          const res = await fetch('/api/months');
+          if (res.ok) {
+            const data = await res.json();
+            if (data.months) months = [...data.months];
+          }
+        } catch (e) {}
+
+        const localList = getStoredTransactions();
+        localList.forEach(tx => {
+          if (tx.date_time && tx.date_time.length >= 7) {
+            const ym = tx.date_time.slice(0, 7);
+            if (!months.includes(ym)) months.push(ym);
+          }
+        });
+        months.sort().reverse();
+
         const select = document.getElementById('exportMonthSelect');
         const prevVal = select.value;
         select.innerHTML = '<option value="ทั้งหมด">♾️ ทุกช่วงเวลา (สรุปสะสมทั้งหมด)</option>';
-        if (data.months && data.months.length > 0) {
-          data.months.forEach(m => {
+        if (months.length > 0) {
+          months.forEach(m => {
             const opt = document.createElement('option');
             opt.value = m;
             opt.innerText = `📅 ${formatMonthThai(m)} (${m})`;
@@ -1836,7 +2021,7 @@
           if (prevVal && select.querySelector(`option[value="${prevVal}"]`)) {
             select.value = prevVal;
           } else {
-            select.value = data.months[0];
+            select.value = months[0];
           }
         }
       } catch (e) {
@@ -1890,14 +2075,9 @@
       const select = document.getElementById('exportMonthSelect');
       const month = select ? select.value : 'ทั้งหมด';
 
-      // Fetch stats for this specific month
-      let stats = null;
-      try {
-        const res = await fetch(`/api/stats?month=${encodeURIComponent(month)}`);
-        stats = await res.json();
-      } catch (e) {
-        console.error('Failed to load stats for export', e);
-      }
+      // Compute unified stats for the selected month
+      const monthTx = await getAllTransactionsMerged(month);
+      const stats = calculateStatsFromList(monthTx);
 
       const width = 1080;
       const height = 1440;

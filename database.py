@@ -1,8 +1,36 @@
 import sqlite3
 import os
 import tempfile
+import re
+import uuid
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+
+def sanitize_amount(val: Any) -> float:
+    """Robust float conversion handling commas, currency signs, and non-numeric characters."""
+    if val is None:
+        return 0.0
+    if isinstance(val, (int, float)):
+        return float(val)
+    s = str(val).replace(",", "").replace("฿", "").replace("บาท", "").strip()
+    match = re.search(r"(\d+(?:\.\d+)?)", s)
+    if match:
+        try:
+            return float(match.group(1))
+        except Exception:
+            pass
+    return 0.0
+
+def sanitize_str(val: Any) -> str:
+    """Safely convert strings, dicts, or lists into a clean string for SQLite."""
+    if val is None:
+        return ""
+    if isinstance(val, dict):
+        parts = [str(v) for v in val.values() if v]
+        return " ".join(parts).strip()
+    if isinstance(val, (list, tuple)):
+        return " ".join(str(v) for v in val).strip()
+    return str(val).strip()
 
 def get_db_path() -> str:
     """Find a writable database path (supports local, Render, Vercel serverless, etc.)."""
@@ -88,6 +116,24 @@ def set_setting(key: str, value: str):
 def add_transaction(item: Dict[str, Any]) -> int:
     conn = get_connection()
     cursor = conn.cursor()
+    
+    amount = sanitize_amount(item.get("amount", 0.0))
+    fee = sanitize_amount(item.get("fee", 0.0))
+    receiver = sanitize_str(item.get("receiver_name", ""))
+    sender = sanitize_str(item.get("sender_name", ""))
+    bank = sanitize_str(item.get("bank", "ไม่ระบุ"))
+    category = sanitize_str(item.get("category", "🍔 อาหารและเครื่องดื่ม"))
+    tx_type = sanitize_str(item.get("transaction_type", "โอนเงิน"))
+    note = sanitize_str(item.get("note", ""))
+    img_path = sanitize_str(item.get("image_path", ""))
+    date_val = sanitize_str(item.get("date_time", "")) or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    ref = item.get("ref_id")
+    if not ref or not str(ref).strip():
+        ref = f"PLB{int(datetime.now().timestamp() * 1000)}_{uuid.uuid4().hex[:6]}"
+    else:
+        ref = str(ref).strip()
+
     cursor.execute("""
         INSERT OR REPLACE INTO transactions (
             ref_id, date_time, bank, transaction_type,
@@ -99,19 +145,19 @@ def add_transaction(item: Dict[str, Any]) -> int:
             :amount, :fee, :category, :note, :image_path
         )
     """, {
-        "ref_id": item.get("ref_id"),
-        "date_time": item.get("date_time", datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
-        "bank": item.get("bank", "ไม่ระบุ"),
-        "transaction_type": item.get("transaction_type", "โอนเงิน"),
-        "sender_name": item.get("sender_name", ""),
-        "sender_account": item.get("sender_account", ""),
-        "receiver_name": item.get("receiver_name", ""),
-        "receiver_account": item.get("receiver_account", ""),
-        "amount": float(item.get("amount", 0.0)),
-        "fee": float(item.get("fee", 0.0)),
-        "category": item.get("category", "อื่นๆ"),
-        "note": item.get("note", ""),
-        "image_path": item.get("image_path", "")
+        "ref_id": ref,
+        "date_time": date_val,
+        "bank": bank,
+        "transaction_type": tx_type,
+        "sender_name": sender,
+        "sender_account": sanitize_str(item.get("sender_account", "")),
+        "receiver_name": receiver,
+        "receiver_account": sanitize_str(item.get("receiver_account", "")),
+        "amount": amount,
+        "fee": fee,
+        "category": category,
+        "note": note,
+        "image_path": img_path
     })
     tx_id = cursor.lastrowid
     conn.commit()
@@ -241,13 +287,13 @@ def update_transaction(tx_id: int, item: Dict[str, Any]) -> bool:
         WHERE id = :id
     """, {
         "id": tx_id,
-        "date_time": item.get("date_time"),
-        "bank": item.get("bank"),
-        "transaction_type": item.get("transaction_type"),
-        "receiver_name": item.get("receiver_name"),
-        "amount": float(item.get("amount", 0.0)),
-        "category": item.get("category"),
-        "note": item.get("note", "")
+        "date_time": sanitize_str(item.get("date_time", "")),
+        "bank": sanitize_str(item.get("bank", "")),
+        "transaction_type": sanitize_str(item.get("transaction_type", "")),
+        "receiver_name": sanitize_str(item.get("receiver_name", "")),
+        "amount": sanitize_amount(item.get("amount", 0.0)),
+        "category": sanitize_str(item.get("category", "")),
+        "note": sanitize_str(item.get("note", ""))
     })
     updated = cursor.rowcount > 0
     conn.commit()
