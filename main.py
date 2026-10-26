@@ -92,6 +92,11 @@ def set_config(data: Dict[str, str]):
     db.set_setting("gemini_api_key", key)
     return {"status": "saved", "has_api_key": bool(key)}
 
+@app.post("/api/validate-key")
+def validate_key(data: Dict[str, str]):
+    key = data.get("gemini_api_key", "").strip()
+    return parser.validate_gemini_api_key(key)
+
 import io
 from PIL import Image
 
@@ -107,12 +112,25 @@ def make_thumbnail_data_url(content: bytes) -> str:
         return "data:image/jpeg;base64," + base64.b64encode(content[:15000]).decode("utf-8")
 
 @app.post("/api/upload-and-analyze")
-async def upload_and_analyze(request: Request, files: List[UploadFile] = File(...)):
+async def upload_and_analyze(
+    request: Request,
+    files: List[UploadFile] = File(...),
+    gemini_api_key: Optional[str] = Form(None),
+    key: Optional[str] = None
+):
     results = []
     ignored = []
     
-    # Extract API key from header if provided by client localStorage
-    client_api_key = request.headers.get("x-gemini-api-key", "").strip()
+    # Extract API key from Form, Query Param, Header, DB, or OS Environment
+    client_api_key = (
+        gemini_api_key
+        or key
+        or request.headers.get("x-gemini-api-key")
+        or db.get_setting("gemini_api_key")
+        or os.environ.get("GEMINI_API_KEY")
+        or ""
+    ).strip().replace('"', '').replace("'", "")
+    print(f"[Upload] Key present: {bool(client_api_key)} (len: {len(client_api_key)})")
     if client_api_key:
         try:
             db.set_setting("gemini_api_key", client_api_key)

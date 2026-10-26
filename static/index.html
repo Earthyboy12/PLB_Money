@@ -344,6 +344,16 @@
         </div>
       </div>
 
+      <!-- AI Engine Status Pill -->
+      <div id="aiStatusPill" onclick="openSettingsModal()" class="cursor-pointer p-3 rounded-2xl border transition flex items-center justify-between gap-3 text-xs bg-slate-900/80 border-amber-500/30 text-amber-200">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+          <div class="truncate">
+            <span class="font-bold text-amber-300">กำลังตรวจสอบสถานะ Gemini AI...</span>
+          </div>
+        </div>
+      </div>
+
       <!-- Polar Bear Scanner Dropzone -->
       <div class="relative overflow-hidden frost-glass p-7 rounded-3xl border-2 border-dashed border-sky-400/40 hover:border-sky-300 transition text-center group cursor-pointer">
         <input type="file" id="slipFileInput" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" onchange="handleFileSelect(event)">
@@ -657,6 +667,18 @@
       fetchConfig();
       loadDashboard();
       loadTransactions();
+
+      // Auto-save key to localStorage on paste/typing
+      const apiInput = document.getElementById('geminiApiKeyInput');
+      if (apiInput) {
+        apiInput.addEventListener('input', (e) => {
+          const val = e.target.value.trim().replace(/["']/g, '');
+          if (val) {
+            localStorage.setItem('gemini_api_key', val);
+            updateAiStatusUI(val.length > 10);
+          }
+        });
+      }
     });
 
     // Navigation Switcher
@@ -677,6 +699,8 @@
         loadDashboard();
       } else if (tab === 'history') {
         loadTransactions();
+      } else if (tab === 'scan') {
+        fetchConfig();
       }
     }
 
@@ -700,28 +724,81 @@
       document.getElementById('qrModal').classList.add('hidden');
     }
 
-    // Config & API Key (Synced with localStorage for serverless persistence)
-    async function fetchConfig() {
-      const localKey = localStorage.getItem('gemini_api_key') || '';
-      if (localKey && document.getElementById('geminiApiKeyInput')) {
-        document.getElementById('geminiApiKeyInput').value = localKey;
-      }
-      try {
-        const res = await fetch('/api/config');
-        const data = await res.json();
-        const dot = document.getElementById('apiKeyDot');
-        const hasKey = (data && data.has_api_key) || (localKey.length > 5);
-        if (hasKey) {
+    function updateAiStatusUI(hasKey) {
+      const dot = document.getElementById('apiKeyDot');
+      const pill = document.getElementById('aiStatusPill');
+      const badge = document.getElementById('keyStatusBadge');
+
+      if (hasKey) {
+        if (dot) {
           dot.classList.remove('bg-amber-400', 'animate-pulse');
           dot.classList.add('bg-emerald-400');
-          dot.title = `AI ทำงานแล้ว`;
-        } else {
+          dot.title = 'AI เชื่อมต่อแล้ว';
+        }
+        if (pill) {
+          pill.className = 'cursor-pointer p-3 rounded-2xl border transition flex items-center justify-between gap-3 text-xs bg-emerald-950/40 border-emerald-500/40 text-emerald-200 hover:bg-emerald-950/60 shadow-md';
+          pill.innerHTML = `
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shrink-0"></span>
+              <div class="truncate">
+                <span class="font-bold text-emerald-300">Google Gemini AI เชื่อมต่อแล้ว</span>
+                <span class="text-[11px] text-slate-300 hidden sm:inline"> • สแกนสลิปจะอ่านยอดเงินและข้อมูลอัตโนมัติ</span>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold text-[10px] shrink-0">
+              AI พร้อมอ่านสลิป 🟢
+            </span>
+          `;
+        }
+        if (badge) {
+          badge.innerHTML = '<span class="text-emerald-400 font-bold">🟢 เชื่อมต่อแล้ว</span>';
+        }
+      } else {
+        if (dot) {
           dot.classList.add('bg-amber-400', 'animate-pulse');
           dot.classList.remove('bg-emerald-400');
-          dot.title = 'ยังไม่ได้ตั้งค่า API Key (ใช้โหมดตัวอย่าง)';
+          dot.title = 'ยังไม่ได้ตั้งค่า API Key';
         }
-      } catch (e) {
-        console.error('Config fetch failed', e);
+        if (pill) {
+          pill.className = 'cursor-pointer p-3 rounded-2xl border transition flex items-center justify-between gap-3 text-xs bg-amber-950/40 border-amber-500/40 text-amber-200 hover:bg-amber-950/60 shadow-md';
+          pill.innerHTML = `
+            <div class="flex items-center gap-2.5 min-w-0">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse shrink-0"></span>
+              <div class="truncate">
+                <span class="font-bold text-amber-300">ยังไม่ได้ใส่ Gemini API Key</span>
+                <span class="text-[11px] text-slate-300 hidden sm:inline"> • แตะที่นี่เพื่อใส่ Key ฟรี ให้อ่านสลิปออโต้ 100%</span>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-xl bg-amber-500 text-slate-950 font-bold text-[10px] shrink-0 hover:bg-amber-400">
+              แตะใส่ Key ⚡
+            </span>
+          `;
+        }
+        if (badge) {
+          badge.innerHTML = '<span class="text-amber-400 font-bold">🟡 ยังไม่ได้เชื่อมต่อ</span>';
+        }
+      }
+    }
+
+    // Config & API Key (Synced with localStorage for serverless persistence)
+    async function fetchConfig() {
+      const localKey = (localStorage.getItem('gemini_api_key') || '').trim();
+      const input = document.getElementById('geminiApiKeyInput');
+      if (localKey && input) {
+        input.value = localKey;
+      }
+      const hasKey = localKey.length > 10;
+      updateAiStatusUI(hasKey);
+
+      // Background sync to serverless backend
+      if (localKey) {
+        try {
+          fetch('/api/config', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({gemini_api_key: localKey})
+          }).catch(() => {});
+        } catch (_) {}
       }
     }
 
@@ -738,13 +815,14 @@
     }
 
     function openSettingsModal() {
-      const localKey = localStorage.getItem('gemini_api_key') || '';
-      if (localKey && document.getElementById('geminiApiKeyInput')) {
-        document.getElementById('geminiApiKeyInput').value = localKey;
+      const localKey = (localStorage.getItem('gemini_api_key') || '').trim();
+      const input = document.getElementById('geminiApiKeyInput');
+      if (localKey && input) {
+        input.value = localKey;
       }
       const badge = document.getElementById('keyStatusBadge');
       if (badge) {
-        if (localKey && localKey.length > 5) {
+        if (localKey && localKey.length > 10) {
           badge.innerHTML = '<span class="text-emerald-400 font-bold">🟢 เชื่อมต่อแล้ว</span>';
         } else {
           badge.innerHTML = '<span class="text-amber-400 font-bold">🟡 ยังไม่ได้เชื่อมต่อ</span>';
@@ -752,24 +830,54 @@
       }
       document.getElementById('settingsModal').classList.remove('hidden');
     }
+
     function closeSettingsModal() {
       document.getElementById('settingsModal').classList.add('hidden');
     }
 
     async function saveApiKey() {
-      const key = document.getElementById('geminiApiKeyInput').value.trim();
-      localStorage.setItem('gemini_api_key', key);
+      const input = document.getElementById('geminiApiKeyInput');
+      const key = (input ? input.value : '').trim().replace(/["']/g, '');
+      if (!key) {
+        alert('กรุณากรอก Gemini API Key ก่อนกดบันทึกครับ');
+        return;
+      }
+      
+      const badge = document.getElementById('keyStatusBadge');
+      if (badge) badge.innerHTML = '<span class="text-sky-300 font-bold animate-pulse">⏳ กำลังตรวจสอบกับ Google...</span>';
+
       try {
+        // Test key with Google AI Studio directly
+        const testRes = await fetch('/api/validate-key', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({gemini_api_key: key})
+        });
+        const testData = await testRes.json();
+
+        if (!testData.valid) {
+          if (badge) badge.innerHTML = '<span class="text-rose-400 font-bold">❌ Key ไม่ถูกต้อง</span>';
+          alert(`⚠️ ${testData.message}\n\nกรุณาตรวจสอบว่าคัดลอกมาครบถ้วน (ปกติขึ้นต้นด้วย AIzaSy... และยาวประมาณ 39 ตัวอักษร) หรือลองสร้าง Key ใหม่บน Google AI Studio ครับ`);
+          return;
+        }
+
+        // Key is valid! Save it in localStorage and server
+        localStorage.setItem('gemini_api_key', key);
+        updateAiStatusUI(true);
+
         await fetch('/api/config', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({gemini_api_key: key})
         });
+
+        alert('🎉 ยินดีด้วยครับ! Gemini API Key ถูกต้องและเชื่อมต่อกับ Google สำเร็จ 100% พร้อมใช้งานแล้วครับ 🐻‍❄️👑');
         closeSettingsModal();
-        fetchConfig();
-        alert('✨ บันทึก Gemini API Key เรียบร้อย! ระบบ AI อ่านสลิปพร้อมใช้งานแล้ว 🐻‍❄️');
       } catch (e) {
-        alert('เกิดข้อผิดพลาดในการบันทึก');
+        localStorage.setItem('gemini_api_key', key);
+        updateAiStatusUI(true);
+        closeSettingsModal();
+        alert('บันทึก API Key ในเครื่องเรียบร้อยแล้วครับ');
       }
     }
 
@@ -1042,15 +1150,18 @@
           { name: 'krungthai_jonessalad_40.jpg', path: '/static/samples/krungthai_jonessalad_40.jpg' }
         ];
 
+        const inputVal = document.getElementById('geminiApiKeyInput') ? document.getElementById('geminiApiKeyInput').value.trim() : '';
+        const localApiKey = (localStorage.getItem('gemini_api_key') || inputVal || '').trim().replace(/["']/g, '');
         const formData = new FormData();
+        formData.append('gemini_api_key', localApiKey);
         for (const s of samples) {
           const res = await fetch(s.path);
           const blob = await res.blob();
           formData.append('files', blob, s.name);
         }
 
-        const localApiKey = localStorage.getItem('gemini_api_key') || '';
-        const res = await fetch('/api/upload-and-analyze', {
+        const url = `/api/upload-and-analyze?key=${encodeURIComponent(localApiKey)}`;
+        const res = await fetch(url, {
           method: 'POST',
           headers: {
             'x-gemini-api-key': localApiKey
@@ -1148,15 +1259,18 @@
           compressedChunk = chunk;
         }
 
-        // 2. Prepare FormData
+        // 2. Prepare FormData with API key in form-data, query param, and headers
+        const inputVal = document.getElementById('geminiApiKeyInput') ? document.getElementById('geminiApiKeyInput').value.trim() : '';
+        const localApiKey = (localStorage.getItem('gemini_api_key') || inputVal || '').trim().replace(/["']/g, '');
         const formData = new FormData();
+        formData.append('gemini_api_key', localApiKey);
         for (let j = 0; j < compressedChunk.length; j++) {
           formData.append('files', compressedChunk[j]);
         }
 
         try {
-          const localApiKey = localStorage.getItem('gemini_api_key') || '';
-          const res = await fetch('/api/upload-and-analyze', {
+          const url = `/api/upload-and-analyze?key=${encodeURIComponent(localApiKey)}`;
+          const res = await fetch(url, {
             method: 'POST',
             headers: {
               'x-gemini-api-key': localApiKey
@@ -1219,6 +1333,8 @@
       container.innerHTML = scannedItems.map((item, index) => {
         const badgeClass = getBankBadgeClass(item.bank);
         const isSimulation = item.engine && item.engine.includes('โหมดจำลอง');
+        const isError = item.engine && item.engine.includes('❌');
+        const isSuccess = item.engine && item.engine.includes('Gemini AI');
         return `
           <div class="frost-glass p-5 rounded-3xl border border-sky-400/25 shadow-xl space-y-3.5">
             <div class="flex items-start justify-between gap-2 border-b border-sky-400/15 pb-3">
@@ -1240,6 +1356,18 @@
               </div>
             </div>
 
+            ${isError ? `
+              <div class="p-3 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-rose-200 text-xs space-y-1">
+                <div class="font-bold flex items-center gap-1.5 text-rose-300">
+                  <i class="fa-solid fa-circle-exclamation text-rose-400"></i>
+                  <span>${item.engine}</span>
+                </div>
+                <div class="text-[11px] text-slate-300">
+                  แตะที่ปุ่ม <button type="button" onclick="openSettingsModal()" class="text-sky-300 underline font-bold">ตั้งค่า AI</button> เพื่อตรวจสอบรหัส API Key ใหม่อีกครั้งครับ
+                </div>
+              </div>
+            ` : ''}
+
             ${isSimulation ? `
               <div class="p-2.5 rounded-xl bg-amber-950/50 border border-amber-500/40 text-amber-200 text-xs flex items-center justify-between gap-2">
                 <div class="flex items-center gap-1.5 min-w-0">
@@ -1249,6 +1377,13 @@
                 <button type="button" onclick="openSettingsModal()" class="px-2 py-1 rounded-lg bg-amber-500 text-slate-950 font-bold text-[10px] shrink-0 hover:bg-amber-400 transition">
                   ใส่ Key ตอนนี้
                 </button>
+              </div>
+            ` : ''}
+
+            ${isSuccess ? `
+              <div class="p-2 rounded-xl bg-emerald-950/40 border border-emerald-500/30 text-emerald-300 text-[11px] flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                <span>วิเคราะห์ด้วย Gemini AI สำเร็จ (อ่านตามคำว่า "บาท" และ "จำนวน")</span>
               </div>
             ` : ''}
 

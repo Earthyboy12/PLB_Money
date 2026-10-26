@@ -99,8 +99,30 @@ def clean_float(val: Any, default: float = 0.0) -> float:
                 pass
     return default
 
+def validate_gemini_api_key(key: str) -> Dict[str, Any]:
+    """Test if a Gemini API key is valid with Google AI Studio."""
+    clean_key = (key or "").strip().replace('"', '').replace("'", "")
+    if not clean_key or len(clean_key) < 15:
+        return {"valid": False, "message": "กรุณาใส่รหัส API Key ให้ครบถ้วน (ปกติขึ้นต้นด้วย AIzaSy... และยาวประมาณ 39 ตัวอักษร)"}
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash?key={clean_key}"
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            r = client.get(url)
+            if r.status_code == 200:
+                return {"valid": True, "message": "API Key ถูกต้องและเชื่อมต่อกับ Google สำเร็จ!"}
+            data = r.json()
+            err_msg = data.get("error", {}).get("message", r.text)
+            return {"valid": False, "message": f"Google แจ้งว่า API Key ไม่ถูกต้อง: {err_msg}"}
+    except Exception as e:
+        return {"valid": False, "message": f"ไม่สามารถเชื่อมต่อไปยัง Google ได้: {str(e)}"}
+
 def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[str, Any]:
     """Call Google Gemini Vision API to detect whether it's a slip and extract slip data with high precision."""
+    clean_api_key = (api_key or "").strip().replace('"', '').replace("'", "")
+    if not clean_api_key:
+        raise ValueError("API Key is missing or empty")
+
     if isinstance(image_data, bytes):
         base64_image = base64.b64encode(image_data).decode("utf-8")
         if image_data.startswith(b"\x89PNG"):
@@ -154,7 +176,7 @@ def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[
 
 ตอบเฉพาะ JSON Object เท่านั้น ห้ามใส่ markdown หรือข้อความอื่น"""
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
     payload = {
         "contents": [
             {
@@ -180,9 +202,12 @@ def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[
     with httpx.Client(timeout=35.0) as client:
         response = client.post(url, json=payload, headers=headers)
         if response.status_code != 200:
-            fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
-            response = client.post(fallback_url, json=payload, headers=headers)
-            response.raise_for_status()
+            err_detail = response.text
+            try:
+                err_detail = response.json().get("error", {}).get("message", response.text)
+            except Exception:
+                pass
+            raise ValueError(f"Google API Error ({response.status_code}): {err_detail}")
 
         data = response.json()
         parts = data.get("candidates", [{}])[0].get("content", {}).get("parts", [])
@@ -200,8 +225,8 @@ def parse_slip_with_gemini(image_data: Union[str, bytes], api_key: str) -> Dict[
         return result
 
 def analyze_slip(image_data: Union[str, bytes], filename: str = "", api_key_override: str = "") -> Dict[str, Any]:
-    """Analyze slip image: detects whether it's a slip and parses details with robust type casting."""
-    api_key = (api_key_override or get_setting("gemini_api_key") or os.environ.get("GEMINI_API_KEY") or "").strip()
+    """Analyze slip image: detects whether it's a slip and parses details with robust error diagnostics."""
+    api_key = (api_key_override or get_setting("gemini_api_key") or os.environ.get("GEMINI_API_KEY") or "").strip().replace('"', '').replace("'", "")
     
     if api_key:
         try:
@@ -211,7 +236,7 @@ def analyze_slip(image_data: Union[str, bytes], filename: str = "", api_key_over
                 return {
                     "success": True,
                     "is_slip": False,
-                    "engine": "Gemini AI Vision",
+                    "engine": "🤖 Gemini AI Vision",
                     "reason": parsed.get("reason", "ไม่ใช่สลิปการเงิน")
                 }
             
@@ -225,9 +250,38 @@ def analyze_slip(image_data: Union[str, bytes], filename: str = "", api_key_over
                 "data": parsed
             }
         except Exception as e:
-            print(f"[Gemini Vision Error] {e}")
+            err_msg = str(e)
+            print(f"[Gemini Vision Error] {err_msg}")
+            
+            # Diagnose specific API error so user knows exactly what happened
+            if "API key not valid" in err_msg or "400" in err_msg:
+                engine_diag = "❌ Google แจ้งว่า API Key ไม่ถูกต้อง (โปรดตรวจสอบรหัสที่ใส่ในเมนูตั้งค่า)"
+            elif "429" in err_msg or "Quota" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+                engine_diag = "❌ โควตาฟรีของ Google เต็มชั่วคราว (กรุณารอ 1-2 นาที)"
+            else:
+                engine_diag = f"❌ AI ขัดข้อง: {err_msg[:60]}"
 
-    # Check known sample slips
+            return {
+                "success": True,
+                "is_slip": True,
+                "engine": engine_diag,
+                "data": {
+                    "bank": "สลิปธนาคาร (AI ขัดข้อง)",
+                    "transaction_type": "โอนเงิน/จ่ายบิล",
+                    "sender_name": "",
+                    "sender_account": "",
+                    "receiver_name": "ผู้รับเงิน / ร้านค้า",
+                    "receiver_account": "",
+                    "amount": 0.0,
+                    "fee": 0.0,
+                    "date_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "ref_id": "TXN" + datetime.now().strftime("%Y%m%d%H%M%S"),
+                    "category": "🍔 อาหารและเครื่องดื่ม",
+                    "note": f"เกิดข้อผิดพลาดจาก Google AI: {err_msg[:60]}"
+                }
+            }
+
+    # Check known sample slips if no API key provided
     lower_name = filename.lower()
     if isinstance(image_data, str):
         lower_name += " " + os.path.basename(image_data).lower()
