@@ -118,12 +118,80 @@ def add_transaction(item: Dict[str, Any]) -> int:
     conn.close()
     return tx_id
 
-def get_transactions(category: Optional[str] = None, bank: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
+def check_duplicate_transaction(
+    ref_id: Optional[str] = None,
+    amount: float = 0.0,
+    date_time: Optional[str] = None,
+    bank: Optional[str] = None,
+    receiver_name: Optional[str] = None
+) -> Optional[Dict[str, Any]]:
+    """Check if slip is already recorded (matching by ref_id or matching amount + date + bank/receiver)."""
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # 1. Match by ref_id if provided and not generic fallback
+    if ref_id and len(ref_id) >= 6 and not ref_id.startswith("TXN20"):
+        cursor.execute("SELECT id, ref_id, amount, date_time, bank, receiver_name FROM transactions WHERE ref_id = ? LIMIT 1", (ref_id,))
+        row = cursor.fetchone()
+        if row:
+            conn.close()
+            return dict(row)
+
+    # 2. Match by exact amount + same calendar date + bank or receiver
+    if amount > 0 and date_time and len(date_time) >= 10:
+        day_str = date_time[:10]  # YYYY-MM-DD
+        cursor.execute("""
+            SELECT id, ref_id, amount, date_time, bank, receiver_name 
+            FROM transactions 
+            WHERE ABS(amount - ?) < 0.001 AND SUBSTR(date_time, 1, 10) = ? AND (bank = ? OR receiver_name = ?)
+            LIMIT 1
+        """, (amount, day_str, bank or "", receiver_name or ""))
+        row = cursor.fetchone()
+        if row:
+            conn.close()
+            return dict(row)
+
+    conn.close()
+    return None
+
+def clear_all_transactions() -> int:
+    """Clear all transactions history."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM transactions")
+    deleted_count = cursor.rowcount
+    conn.commit()
+    conn.close()
+    return deleted_count
+
+def get_available_months() -> List[str]:
+    """Get list of distinct months (YYYY-MM) with transactions."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT DISTINCT SUBSTR(date_time, 1, 7) as month
+        FROM transactions
+        WHERE date_time IS NOT NULL AND LENGTH(date_time) >= 7
+        ORDER BY month DESC
+    """)
+    months = [r["month"] for r in cursor.fetchall() if r["month"]]
+    conn.close()
+    return months
+
+def get_transactions(
+    category: Optional[str] = None,
+    bank: Optional[str] = None,
+    search: Optional[str] = None,
+    month: Optional[str] = None
+) -> List[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
     query = "SELECT * FROM transactions WHERE 1=1"
     params = []
     
+    if month and month != "ทั้งหมด":
+        query += " AND SUBSTR(date_time, 1, 7) = ?"
+        params.append(month)
     if category and category != "ทั้งหมด":
         query += " AND category = ?"
         params.append(category)
@@ -186,53 +254,64 @@ def update_transaction(tx_id: int, item: Dict[str, Any]) -> bool:
     conn.close()
     return updated
 
-def get_statistics():
+def get_statistics(month: Optional[str] = None):
     conn = get_connection()
     cursor = conn.cursor()
     
-    cursor.execute("SELECT COUNT(*) as count, SUM(amount) as total, AVG(amount) as average FROM transactions")
+    where_clause = ""
+    params = []
+    if month and month != "ทั้งหมด":
+        where_clause = "WHERE SUBSTR(date_time, 1, 7) = ?"
+        params = [month]
+
+    cursor.execute(f"SELECT COUNT(*) as count, SUM(amount) as total, AVG(amount) as average FROM transactions {where_clause}", params)
     summary = cursor.fetchone()
     total_amount = summary["total"] or 0.0
     total_count = summary["count"] or 0
     avg_amount = summary["average"] or 0.0
 
-    cursor.execute("""
+    cursor.execute(f"""
         SELECT category, SUM(amount) as total, COUNT(*) as count
         FROM transactions
+        {where_clause}
         GROUP BY category
         ORDER BY total DESC
-    """)
+    """, params)
     categories = [dict(r) for r in cursor.fetchall()]
 
-    cursor.execute("""
+    cursor.execute(f"""
         SELECT bank, SUM(amount) as total, COUNT(*) as count
         FROM transactions
+        {where_clause}
         GROUP BY bank
         ORDER BY total DESC
-    """)
+    """, params)
     banks = [dict(r) for r in cursor.fetchall()]
 
-    cursor.execute("""
+    day_where = f"{where_clause} AND" if where_clause else "WHERE"
+    cursor.execute(f"""
         SELECT SUBSTR(date_time, 1, 10) as day, SUM(amount) as total, COUNT(*) as count
         FROM transactions
-        WHERE date_time IS NOT NULL AND date_time != ''
+        {day_where} date_time IS NOT NULL AND date_time != ''
         GROUP BY day
         ORDER BY day ASC
-    """)
+    """, params)
     daily = [dict(r) for r in cursor.fetchall()]
 
-    cursor.execute("""
+    rec_where = f"{where_clause} AND" if where_clause else "WHERE"
+    cursor.execute(f"""
         SELECT receiver_name, SUM(amount) as total, COUNT(*) as count
         FROM transactions
-        WHERE receiver_name IS NOT NULL AND receiver_name != ''
+        {rec_where} receiver_name IS NOT NULL AND receiver_name != ''
         GROUP BY receiver_name
         ORDER BY total DESC
         LIMIT 5
-    """)
+    """, params)
     top_receivers = [dict(r) for r in cursor.fetchall()]
 
     conn.close()
     return {
+        "month": month or "ทั้งหมด",
         "total_amount": round(total_amount, 2),
         "total_count": total_count,
         "avg_amount": round(avg_amount, 2),

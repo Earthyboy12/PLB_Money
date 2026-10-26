@@ -120,6 +120,7 @@ async def upload_and_analyze(
 ):
     results = []
     ignored = []
+    batch_fingerprints = set()
     
     # Extract API key from Form, Query Param, Header, DB, or OS Environment
     client_api_key = (
@@ -191,6 +192,34 @@ async def upload_and_analyze(
             data["original_filename"] = filename
             data["engine"] = analysis.get("engine", "Unknown")
 
+            # Check duplicate in database or in current batch
+            ref_id = data.get("ref_id", "")
+            amount = float(data.get("amount", 0.0))
+            date_time = data.get("date_time", "")
+            bank = data.get("bank", "")
+            receiver = data.get("receiver_name", "")
+
+            dup = db.check_duplicate_transaction(
+                ref_id=ref_id,
+                amount=amount,
+                date_time=date_time,
+                bank=bank,
+                receiver_name=receiver
+            )
+
+            fingerprint = f"{amount:.2f}_{date_time[:10] if date_time else ''}_{bank}"
+            is_batch_dup = fingerprint in batch_fingerprints
+            batch_fingerprints.add(fingerprint)
+
+            if dup:
+                data["is_duplicate"] = True
+                data["duplicate_reason"] = f"พบสลิปซ้ำ (เคยบันทึกแล้ว ยอด ฿{dup['amount']:,.2f} วันที่ {dup.get('date_time', '')[:10]})"
+            elif is_batch_dup:
+                data["is_duplicate"] = True
+                data["duplicate_reason"] = "พบสลิปซ้ำ (มีรูปสลิปนี้ซ้ำในชุดที่อัปโหลด)"
+            else:
+                data["is_duplicate"] = False
+
             results.append(data)
         except Exception as e:
             print(f"[Upload Error on {getattr(file, 'filename', 'unknown')}]: {e}")
@@ -221,9 +250,25 @@ def save_batch_transactions(items: List[Dict[str, Any]]):
         saved_ids.append(tx_id)
     return {"status": "success", "count": len(saved_ids), "ids": saved_ids}
 
+@app.post("/api/transactions/clear")
+@app.delete("/api/transactions")
+def clear_all_transactions():
+    deleted_count = db.clear_all_transactions()
+    return {"status": "success", "deleted_count": deleted_count}
+
+@app.get("/api/months")
+def get_available_months():
+    months = db.get_available_months()
+    return {"months": months}
+
 @app.get("/api/transactions")
-def list_transactions(category: Optional[str] = None, bank: Optional[str] = None, search: Optional[str] = None):
-    transactions = db.get_transactions(category=category, bank=bank, search=search)
+def list_transactions(
+    category: Optional[str] = None,
+    bank: Optional[str] = None,
+    search: Optional[str] = None,
+    month: Optional[str] = None
+):
+    transactions = db.get_transactions(category=category, bank=bank, search=search, month=month)
     return {"transactions": transactions}
 
 @app.get("/api/transactions/{tx_id}")
@@ -244,8 +289,8 @@ def delete_transaction(tx_id: int):
     return {"status": "success" if success else "failed"}
 
 @app.get("/api/stats")
-def get_stats():
-    return db.get_statistics()
+def get_stats(month: Optional[str] = None):
+    return db.get_statistics(month=month)
 
 @app.post("/api/seed-samples")
 def seed_samples():

@@ -217,6 +217,18 @@
         </div>
       </div>
 
+      <!-- Dashboard Quick Action Bar -->
+      <div class="flex items-center justify-between gap-2.5 flex-wrap">
+        <button onclick="openExportModal()" class="px-4 py-2 rounded-xl aurora-btn text-white text-xs font-bold shadow-md hover:brightness-110 transition flex items-center gap-2">
+          <i class="fa-solid fa-file-image"></i>
+          <span>📸 บันทึกรูปสรุปรายจ่าย</span>
+        </button>
+        <button onclick="confirmClearHistory()" class="px-3.5 py-2 rounded-xl bg-slate-900/80 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700/60 hover:border-rose-500/40 text-xs font-medium transition flex items-center gap-1.5">
+          <i class="fa-solid fa-trash-can text-xs"></i>
+          <span>ล้างประวัติ</span>
+        </button>
+      </div>
+
       <!-- Quick Seed Banner if needed -->
       <div id="seedBanner" class="hidden frost-glass rounded-2xl p-4 border border-sky-400/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
         <div class="flex items-center gap-3">
@@ -412,12 +424,22 @@
       </div>
 
       <!-- Action Button: Save All to DB -->
-      <div id="saveAllBar" class="hidden sticky bottom-24 sm:bottom-8 z-30 frost-glass p-4 rounded-2xl border border-sky-400/40 shadow-2xl flex items-center justify-between gap-3">
+      <div id="saveAllBar" class="hidden sticky bottom-24 sm:bottom-8 z-30 frost-glass p-4 rounded-3xl border border-sky-400/40 shadow-2xl flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         <div>
-          <span class="text-[10px] text-slate-400 uppercase tracking-wider block">สลิปที่พร้อมบันทึก</span>
-          <div class="text-sm font-bold text-sky-300 font-mono" id="readyCountText">0 รายการ</div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] text-slate-400 uppercase tracking-wider block">สลิปที่พร้อมบันทึก:</span>
+            <span class="text-sm font-bold text-sky-300 font-mono" id="readyCountText">0 รายการ</span>
+          </div>
+          <label class="flex items-center gap-1.5 text-[11px] text-slate-300 cursor-pointer mt-1">
+            <input type="checkbox" id="lightweightMemoryToggle" checked class="rounded border-slate-700 text-sky-400 focus:ring-0">
+            <span>⚡ บันทึกเฉพาะตัวเลข (ไม่เก็บไฟล์รูป ประหยัดความจำ 99%)</span>
+          </label>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center justify-end gap-2 flex-wrap">
+          <button id="removeDupsBtn" type="button" onclick="removeDuplicatesFromQueue()" class="hidden px-3 py-2 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold hover:bg-amber-500/30 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-broom"></i>
+            <span id="removeDupsBtnText">ลบสลิปซ้ำ (0)</span>
+          </button>
           <button onclick="clearScannedList()" class="px-3.5 py-2 text-xs text-slate-400 hover:text-white rounded-xl transition">
             ยกเลิก
           </button>
@@ -430,6 +452,23 @@
 
     <!-- Tab 3: Transactions History (ประวัติรายการสลิป) -->
     <section id="tab-history" class="hidden space-y-4">
+      <!-- History Header Action Bar -->
+      <div class="flex items-center justify-between gap-2.5 flex-wrap">
+        <div>
+          <h3 class="font-bold text-sm text-sky-100 font-cute">TRANSACTION LOG</h3>
+          <p class="text-[11px] text-slate-400">ประวัติรายการสลิปและบันทึกค่าใช้จ่าย</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openExportModal()" class="px-3.5 py-1.5 rounded-xl aurora-btn text-white text-xs font-bold shadow-md hover:brightness-110 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-file-image"></i>
+            <span>📸 บันทึกรูปสรุป</span>
+          </button>
+          <button onclick="confirmClearHistory()" class="px-3 py-1.5 rounded-xl bg-slate-900/80 hover:bg-rose-950/60 text-slate-400 hover:text-rose-300 border border-slate-700/60 hover:border-rose-500/40 text-xs font-medium transition flex items-center gap-1.5">
+            <i class="fa-solid fa-trash-can text-xs"></i>
+            <span>ล้างทั้งหมด</span>
+          </button>
+        </div>
+      </div>
       <!-- Search & Filters -->
       <div class="frost-glass p-4 rounded-2xl border border-sky-400/20 shadow-lg space-y-3">
         <!-- Search Input -->
@@ -612,6 +651,58 @@
         </button>
         <button onclick="saveApiKey()" class="px-5 py-2 aurora-btn text-white font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition">
           บันทึกการตั้งค่า
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 4: Export Summary Infographic Image Modal -->
+  <div id="exportModal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="max-w-md w-full frost-glass rounded-3xl p-5 sm:p-6 border border-sky-400/30 shadow-2xl space-y-4 my-auto">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-10 h-10 rounded-xl aurora-btn text-white flex items-center justify-center text-sm font-bold shadow-md">
+            <i class="fa-solid fa-camera-retro"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-sky-100 font-cute text-sm tracking-wide">EXPORT INFOGRAPHIC</h3>
+            <p class="text-[11px] text-slate-400">บันทึกรูปสรุปรายจ่ายประจำเดือน</p>
+          </div>
+        </div>
+        <button onclick="closeExportModal()" class="w-8 h-8 rounded-full bg-slate-900 text-slate-400 hover:text-white flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Month Selector -->
+      <div class="space-y-1.5">
+        <label class="text-[11px] font-bold text-sky-200 block uppercase tracking-wider flex items-center justify-between">
+          <span>เลือกเดือนที่ต้องการสรุป:</span>
+          <span class="text-[10px] text-sky-300 font-normal">เปลี่ยนเดือนรูปจะอัปเดตทันที</span>
+        </label>
+        <select id="exportMonthSelect" onchange="renderExportInfographic()" class="w-full py-2.5 px-3 bg-slate-900 border border-sky-400/30 rounded-xl text-xs text-sky-100 focus:outline-none focus:ring-1 focus:ring-sky-400 font-medium">
+          <option value="ทั้งหมด">♾️ ทุกช่วงเวลา (สรุปสะสมทั้งหมด)</option>
+        </select>
+      </div>
+
+      <!-- Canvas Preview Container -->
+      <div class="relative bg-slate-950/90 rounded-2xl p-2.5 border border-sky-400/25 flex flex-col items-center justify-center shadow-inner">
+        <canvas id="exportCanvas" width="1080" height="1440" class="w-full max-w-[270px] sm:max-w-[310px] rounded-xl shadow-2xl aspect-[3/4] object-contain"></canvas>
+        <div id="exportLoadingOverlay" class="absolute inset-0 bg-slate-950/80 rounded-2xl flex flex-col items-center justify-center gap-2 text-xs text-sky-200 hidden">
+          <div class="w-8 h-8 rounded-full border-2 border-sky-400/20 border-t-sky-400 animate-spin"></div>
+          <span>กำลังวาดรูปสรุปรายจ่าย...</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="space-y-2 pt-1">
+        <button type="button" onclick="downloadExportImage()" class="w-full py-2.5 aurora-btn text-white font-bold text-xs rounded-xl shadow-lg hover:brightness-110 transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-download"></i>
+          <span>ดาวน์โหลดรูปลงเครื่อง (PNG)</span>
+        </button>
+        <button type="button" id="shareImageBtn" onclick="shareExportImage()" class="w-full py-2.5 bg-slate-900 hover:bg-sky-950/80 text-sky-300 border border-sky-400/30 font-bold text-xs rounded-xl transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-share-nodes"></i>
+          <span>แชร์ / เซฟลงอัลบั้มมือถือ (Share / Photos)</span>
         </button>
       </div>
     </div>
@@ -1330,13 +1421,26 @@
       saveBar.classList.remove('hidden');
       document.getElementById('readyCountText').innerText = `${scannedItems.length} รายการ`;
 
+      // Check duplicates count
+      const dupCount = scannedItems.filter(x => x.is_duplicate).length;
+      const removeDupsBtn = document.getElementById('removeDupsBtn');
+      if (removeDupsBtn) {
+        if (dupCount > 0) {
+          removeDupsBtn.classList.remove('hidden');
+          document.getElementById('removeDupsBtnText').innerText = `ลบสลิปซ้ำ (${dupCount})`;
+        } else {
+          removeDupsBtn.classList.add('hidden');
+        }
+      }
+
       container.innerHTML = scannedItems.map((item, index) => {
         const badgeClass = getBankBadgeClass(item.bank);
         const isSimulation = item.engine && item.engine.includes('โหมดจำลอง');
         const isError = item.engine && item.engine.includes('❌');
         const isSuccess = item.engine && item.engine.includes('Gemini AI');
+        const isDuplicate = Boolean(item.is_duplicate);
         return `
-          <div class="frost-glass p-5 rounded-3xl border border-sky-400/25 shadow-xl space-y-3.5">
+          <div class="frost-glass p-5 rounded-3xl border ${isDuplicate ? 'border-amber-400/50 shadow-amber-950/20' : 'border-sky-400/25'} shadow-xl space-y-3.5 transition">
             <div class="flex items-start justify-between gap-2 border-b border-sky-400/15 pb-3">
               <div class="flex items-center gap-2 min-w-0">
                 <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${badgeClass}">
@@ -1347,14 +1451,31 @@
                 </span>
               </div>
               <div class="flex items-center gap-1">
-                <button onclick="viewSlipImage('${item.image_path}')" class="p-1.5 text-sky-400 hover:text-white text-xs" title="ดูรูปสลิป">
-                  <i class="fa-solid fa-eye"></i>
-                </button>
+                ${item.image_path ? `
+                  <button onclick="viewSlipImage('${item.image_path}')" class="p-1.5 text-sky-400 hover:text-white text-xs" title="ดูรูปสลิป">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                ` : ''}
                 <button onclick="removeScannedItem(${index})" class="p-1.5 text-slate-500 hover:text-rose-400 text-xs" title="ลบรายการนี้">
                   <i class="fa-solid fa-trash"></i>
                 </button>
               </div>
             </div>
+
+            ${isDuplicate ? `
+              <div class="p-2.5 rounded-2xl bg-amber-950/70 border border-amber-500/50 text-amber-200 text-xs flex items-center justify-between gap-2 shadow-inner">
+                <div class="flex items-center gap-2 min-w-0">
+                  <i class="fa-solid fa-copy text-amber-400 text-sm shrink-0"></i>
+                  <div class="truncate">
+                    <span class="font-bold text-amber-300">⚠️ ตรวจพบสลิปซ้ำ</span>
+                    <span class="text-[11px] text-amber-100/90 block truncate">${item.duplicate_reason || 'เคยมีรายการนี้ในประวัติแล้ว'}</span>
+                  </div>
+                </div>
+                <button type="button" onclick="removeScannedItem(${index})" class="px-2.5 py-1 rounded-xl bg-amber-500/30 text-amber-300 border border-amber-500/50 text-[10px] font-bold hover:bg-amber-500/40 shrink-0">
+                  ข้ามใบนี้
+                </button>
+              </div>
+            ` : ''}
 
             ${isError ? `
               <div class="p-3 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-rose-200 text-xs space-y-1">
@@ -1420,12 +1541,20 @@
 
             <!-- Notes & Ref ID -->
             <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1">
-              <span class="font-mono">Ref: ${item.ref_id || '-'}</span>
-              <span class="text-sky-300 bg-sky-950/40 border border-sky-400/20 px-2 py-0.5 rounded-full font-mono">${item.engine || 'AI'}</span>
+              <span class="font-mono truncate mr-2">Ref: ${item.ref_id || '-'}</span>
+              <span class="text-sky-300 bg-sky-950/40 border border-sky-400/20 px-2 py-0.5 rounded-full font-mono shrink-0">${item.engine || 'AI'}</span>
             </div>
           </div>
         `;
       }).join('');
+    }
+
+    function removeDuplicatesFromQueue() {
+      const originalCount = scannedItems.length;
+      scannedItems = scannedItems.filter(item => !item.is_duplicate);
+      const removed = originalCount - scannedItems.length;
+      renderScannedCards();
+      alert(`🧹 ลบสลิปที่ตรวจพบว่าซ้ำออกเรียบร้อยแล้ว ${removed} ใบ (เหลือสลิปใหม่พร้อมบันทึก ${scannedItems.length} ใบ)`);
     }
 
     function updateScannedField(index, field, value) {
@@ -1473,21 +1602,37 @@
     async function saveAllScanned() {
       if (scannedItems.length === 0) return;
 
+      // Duplicate check prompt
+      const dupCount = scannedItems.filter(x => x.is_duplicate).length;
+      let itemsToSave = [...scannedItems];
+      if (dupCount > 0) {
+        const skip = confirm(`ตรวจพบสลิปซ้ำ ${dupCount} ใบ\n\nต้องการ "ข้ามสลิปซ้ำ" เพื่อป้องกันการบันทึกยอดซ้ำซ้อนหรือไม่?\n\n• กด ตกลง (OK) = ข้ามสลิปซ้ำ (บันทึกเฉพาะสลิปใหม่ ${itemsToSave.length - dupCount} ใบ)\n• กด ยกเลิก (Cancel) = บันทึกทั้งหมด`);
+        if (skip) {
+          itemsToSave = itemsToSave.filter(x => !x.is_duplicate);
+          if (itemsToSave.length === 0) {
+            alert('สลิปที่เลือกมาทั้งหมดเป็นสลิปซ้ำ จึงไม่มีรายการใหม่ให้บันทึกครับ');
+            return;
+          }
+        }
+      }
+
       const saveBar = document.getElementById('saveAllBar');
       saveBar.classList.add('opacity-75', 'pointer-events-none');
       const readyText = document.getElementById('readyCountText');
 
       let savedCount = 0;
-      const totalToSave = scannedItems.length;
+      const totalToSave = itemsToSave.length;
+      const isLightweight = document.getElementById('lightweightMemoryToggle') ? document.getElementById('lightweightMemoryToggle').checked : true;
 
       try {
-        // Save items 1 by 1 to guarantee payload is always tiny (~15KB) and never hits 413 limits
         for (let i = 0; i < totalToSave; i++) {
-          const item = scannedItems[i];
+          const item = {...itemsToSave[i]};
           readyText.innerText = `กำลังบันทึก ${i + 1}/${totalToSave}...`;
 
-          // Shrink data URL if it's large in browser memory
-          if (item.image_path && item.image_path.startsWith('data:')) {
+          // Memory optimization: do NOT save heavy base64 images if lightweight mode is on
+          if (isLightweight) {
+            item.image_path = "";
+          } else if (item.image_path && item.image_path.startsWith('data:')) {
             item.image_path = await shrinkDataUrl(item.image_path, 320);
           }
 
@@ -1508,6 +1653,8 @@
         alert(`❄️ บันทึกข้อมูลสำเร็จครบทั้ง ${savedCount} รายการ!`);
         scannedItems = [];
         renderScannedCards();
+        loadDashboard();
+        loadTransactions();
         switchTab('history');
       } catch (err) {
         alert('เกิดข้อผิดพลาดในการบันทึก: ' + err.message);
@@ -1641,6 +1788,22 @@
       }
     }
 
+    // Clear All Transactions
+    async function confirmClearHistory() {
+      const sure = confirm('⚠️ คำเตือนสำคัญ:\nคุณต้องการล้างประวัติรายการสลิปและข้อมูลรายจ่ายทั้งหมดใช่หรือไม่?\n\n(ยอดรวมจะถูกรีเซ็ตเป็น 0 และไม่สามารถกู้คืนได้)');
+      if (!sure) return;
+
+      try {
+        const res = await fetch('/api/transactions/clear', { method: 'POST' });
+        const data = await res.json();
+        alert(`🗑️ ล้างประวัติรายจ่ายทั้งหมดเรียบร้อยแล้ว (${data.deleted_count || 0} รายการ)`);
+        loadDashboard();
+        loadTransactions();
+      } catch (e) {
+        alert('เกิดข้อผิดพลาดในการล้างประวัติ: ' + e.message);
+      }
+    }
+
     // Modal Image Preview
     function viewSlipImage(path) {
       if (!path) return;
@@ -1649,6 +1812,369 @@
     }
     function closeImageModal() {
       document.getElementById('imageModal').classList.add('hidden');
+    }
+
+    // Export Summary Infographic (Canvas 1080x1440)
+    async function openExportModal() {
+      const modal = document.getElementById('exportModal');
+      modal.classList.remove('hidden');
+
+      // Populate available months dropdown
+      try {
+        const res = await fetch('/api/months');
+        const data = await res.json();
+        const select = document.getElementById('exportMonthSelect');
+        const prevVal = select.value;
+        select.innerHTML = '<option value="ทั้งหมด">♾️ ทุกช่วงเวลา (สรุปสะสมทั้งหมด)</option>';
+        if (data.months && data.months.length > 0) {
+          data.months.forEach(m => {
+            const opt = document.createElement('option');
+            opt.value = m;
+            opt.innerText = `📅 ${formatMonthThai(m)} (${m})`;
+            select.appendChild(opt);
+          });
+          if (prevVal && select.querySelector(`option[value="${prevVal}"]`)) {
+            select.value = prevVal;
+          } else {
+            select.value = data.months[0];
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load months', e);
+      }
+
+      if (document.fonts && document.fonts.ready) {
+        await document.fonts.ready;
+      }
+      renderExportInfographic();
+    }
+
+    function closeExportModal() {
+      document.getElementById('exportModal').classList.add('hidden');
+    }
+
+    function formatMonthThai(ymStr) {
+      if (!ymStr || ymStr === 'ทั้งหมด') return 'ทั้งหมด';
+      const parts = ymStr.split('-');
+      if (parts.length < 2) return ymStr;
+      const year = parseInt(parts[0], 10) + 543;
+      const monthNames = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+      const mIndex = parseInt(parts[1], 10) - 1;
+      const mName = monthNames[mIndex] || parts[1];
+      return `${mName} ${year}`;
+    }
+
+    function roundRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+
+    async function renderExportInfographic() {
+      const overlay = document.getElementById('exportLoadingOverlay');
+      if (overlay) overlay.classList.remove('hidden');
+
+      const canvas = document.getElementById('exportCanvas');
+      const ctx = canvas.getContext('2d');
+      const select = document.getElementById('exportMonthSelect');
+      const month = select ? select.value : 'ทั้งหมด';
+
+      // Fetch stats for this specific month
+      let stats = null;
+      try {
+        const res = await fetch(`/api/stats?month=${encodeURIComponent(month)}`);
+        stats = await res.json();
+      } catch (e) {
+        console.error('Failed to load stats for export', e);
+      }
+
+      const width = 1080;
+      const height = 1440;
+      canvas.width = width;
+      canvas.height = height;
+
+      // 1. Background Gradient (Arctic Dark Polar)
+      const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+      bgGrad.addColorStop(0, '#060d19');
+      bgGrad.addColorStop(0.4, '#0a1d38');
+      bgGrad.addColorStop(1, '#061122');
+      ctx.fillStyle = bgGrad;
+      ctx.fillRect(0, 0, width, height);
+
+      // Aurora Glow Effect in top middle
+      const aurora = ctx.createRadialGradient(width / 2, 280, 50, width / 2, 280, 600);
+      aurora.addColorStop(0, 'rgba(56, 189, 248, 0.22)');
+      aurora.addColorStop(0.5, 'rgba(16, 185, 129, 0.10)');
+      aurora.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = aurora;
+      ctx.fillRect(0, 0, width, height);
+
+      // Outer border frame
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+      ctx.lineWidth = 4;
+      roundRect(ctx, 45, 45, width - 90, height - 90, 40);
+      ctx.stroke();
+
+      // Load Logo
+      const logoImg = new Image();
+      logoImg.crossOrigin = 'anonymous';
+      await new Promise((resolve) => {
+        logoImg.onload = resolve;
+        logoImg.onerror = resolve;
+        logoImg.src = '/static/logo.png';
+      });
+
+      // Draw Logo in circle badge at top-left
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(135, 140, 55, 0, Math.PI * 2);
+      ctx.fillStyle = '#0f2744';
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+      ctx.lineWidth = 4;
+      ctx.stroke();
+      ctx.clip();
+      if (logoImg.complete && logoImg.naturalWidth > 0) {
+        ctx.drawImage(logoImg, 80, 85, 110, 110);
+      } else {
+        ctx.font = '50px sans-serif';
+        ctx.fillText('🐻‍❄️', 110, 155);
+      }
+      ctx.restore();
+
+      // App Title
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 42px Prompt, sans-serif';
+      ctx.fillText('PLB MONEY IS KING 👑', 215, 130);
+
+      ctx.fillStyle = '#7dd3fc';
+      ctx.font = '500 22px Prompt, sans-serif';
+      ctx.fillText('สรุปยอดใช้จ่ายประจำเดือน • ARCTIC VAULT', 215, 168);
+
+      // Month Badge at top right
+      const monthLabel = month === 'ทั้งหมด' ? '❄️ ทุกช่วงเวลา' : `❄️ ${formatMonthThai(month)}`;
+      ctx.font = 'bold 22px Prompt, sans-serif';
+      const badgeWidth = ctx.measureText(monthLabel).width + 36;
+      const badgeX = width - 85 - badgeWidth;
+      ctx.fillStyle = 'rgba(14, 165, 233, 0.18)';
+      roundRect(ctx, badgeX, 105, badgeWidth, 52, 26);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
+      ctx.lineWidth = 2;
+      roundRect(ctx, badgeX, 105, badgeWidth, 52, 26);
+      ctx.stroke();
+      ctx.fillStyle = '#38bdf8';
+      ctx.fillText(monthLabel, badgeX + 18, 139);
+
+      // 2. VIP Grand Total Box (Hero Card)
+      const totalAmount = stats ? stats.total_amount : 0;
+      const totalCount = stats ? stats.total_count : 0;
+      const avgAmount = stats ? stats.avg_amount : 0;
+
+      const cardGrad = ctx.createLinearGradient(85, 230, width - 85, 500);
+      cardGrad.addColorStop(0, 'rgba(15, 34, 62, 0.92)');
+      cardGrad.addColorStop(1, 'rgba(9, 20, 38, 0.95)');
+      ctx.fillStyle = cardGrad;
+      roundRect(ctx, 85, 230, width - 170, 270, 32);
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.35)';
+      ctx.lineWidth = 3;
+      roundRect(ctx, 85, 230, width - 170, 270, 32);
+      ctx.stroke();
+
+      // Grand Total Label
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '600 22px Prompt, sans-serif';
+      ctx.fillText('ยอดใช้จ่ายรวมทั้งสิ้น (TOTAL EXPENSES)', 135, 288);
+
+      // Big Amount Typography
+      ctx.fillStyle = '#34d399';
+      ctx.font = 'bold 80px Prompt, sans-serif';
+      const amountStr = `฿ ${totalAmount.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+      ctx.fillText(amountStr, 135, 380);
+
+      // Horizontal divider inside hero card
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(135, 415);
+      ctx.lineTo(width - 135, 415);
+      ctx.stroke();
+
+      // Sub metrics
+      ctx.fillStyle = '#e2e8f0';
+      ctx.font = '500 24px Prompt, sans-serif';
+      ctx.fillText(`📋 จำนวนสลิปที่บันทึก: ${totalCount} ใบ`, 135, 460);
+      ctx.fillText(`⚡ เฉลี่ยต่อสลิป: ฿ ${avgAmount.toLocaleString('th-TH', {minimumFractionDigits: 2})}`, 580, 460);
+
+      // 3. Category Breakdown Section
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px Prompt, sans-serif';
+      ctx.fillText('🧊 สัดส่วนหมวดหมู่ค่าใช้จ่าย (TOP CATEGORIES)', 85, 555);
+
+      const categories = (stats && stats.categories) ? stats.categories.slice(0, 4) : [];
+      let catY = 610;
+
+      if (categories.length === 0) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '24px Prompt, sans-serif';
+        ctx.fillText('ไม่มีข้อมูลค่าใช้จ่ายในรอบเดือนนี้', 85, catY + 30);
+      } else {
+        categories.forEach((cat) => {
+          const percent = totalAmount > 0 ? (cat.total / totalAmount) : 0;
+          const percentText = `${(percent * 100).toFixed(1)}%`;
+
+          // Label & Amount
+          ctx.fillStyle = '#f1f5f9';
+          ctx.font = '600 23px Prompt, sans-serif';
+          ctx.fillText(cat.category, 85, catY);
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 23px Prompt, sans-serif';
+          const catVal = `฿ ${cat.total.toLocaleString('th-TH', {minimumFractionDigits: 2})} (${percentText})`;
+          const valW = ctx.measureText(catVal).width;
+          ctx.fillText(catVal, width - 85 - valW, catY);
+
+          // Progress bar background
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.8)';
+          roundRect(ctx, 85, catY + 14, width - 170, 16, 8);
+          ctx.fill();
+
+          // Progress bar fill gradient
+          const barW = Math.max(16, (width - 170) * percent);
+          const barGrad = ctx.createLinearGradient(85, 0, 85 + barW, 0);
+          barGrad.addColorStop(0, '#38bdf8');
+          barGrad.addColorStop(1, '#10b981');
+          ctx.fillStyle = barGrad;
+          roundRect(ctx, 85, catY + 14, barW, 16, 8);
+          ctx.fill();
+
+          catY += 76;
+        });
+      }
+
+      // 4. Top Merchants Section
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px Prompt, sans-serif';
+      ctx.fillText('🏪 ร้านค้า / ผู้รับเงินสูงสุด (TOP MERCHANTS)', 85, 950);
+
+      const receivers = (stats && stats.top_receivers) ? stats.top_receivers.slice(0, 3) : [];
+      let recY = 1000;
+
+      if (receivers.length === 0) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '24px Prompt, sans-serif';
+        ctx.fillText('ไม่มีข้อมูลร้านค้าในรอบเดือนนี้', 85, recY + 30);
+      } else {
+        receivers.forEach((rec, idx) => {
+          // Merchant box
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
+          roundRect(ctx, 85, recY, width - 170, 68, 20);
+          ctx.fill();
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+          ctx.lineWidth = 1.5;
+          roundRect(ctx, 85, recY, width - 170, 68, 20);
+          ctx.stroke();
+
+          // Number badge
+          ctx.fillStyle = '#0284c7';
+          roundRect(ctx, 102, recY + 15, 38, 38, 19);
+          ctx.fill();
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 20px Prompt, sans-serif';
+          ctx.fillText(`${idx + 1}`, 115, recY + 41);
+
+          // Name
+          ctx.fillStyle = '#f8fafc';
+          ctx.font = '600 22px Prompt, sans-serif';
+          const name = rec.receiver_name || 'ไม่ระบุผู้รับ';
+          ctx.fillText(name.length > 32 ? name.slice(0, 30) + '...' : name, 155, recY + 42);
+
+          // Value
+          ctx.fillStyle = '#38bdf8';
+          ctx.font = 'bold 22px Prompt, sans-serif';
+          const recVal = `฿ ${rec.total.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+          const recValW = ctx.measureText(recVal).width;
+          ctx.fillText(recVal, width - 110 - recValW, recY + 42);
+
+          recY += 82;
+        });
+      }
+
+      // 5. Footer & Authenticity Stamp
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(85, 1290);
+      ctx.lineTo(width - 85, 1290);
+      ctx.stroke();
+
+      const now = new Date();
+      const dateFormatted = now.toLocaleDateString('th-TH', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      ctx.fillStyle = '#64748b';
+      ctx.font = '400 20px Prompt, sans-serif';
+      ctx.fillText(`สร้างเมื่อ: ${dateFormatted} น. • PLB Money Is King`, 85, 1345);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = 'bold 20px Prompt, sans-serif';
+      ctx.fillText('👑 VERIFIED WITH GEMINI AI VISION 🐻‍❄️', 640, 1345);
+
+      if (overlay) overlay.classList.add('hidden');
+    }
+
+    function downloadExportImage() {
+      const canvas = document.getElementById('exportCanvas');
+      const select = document.getElementById('exportMonthSelect');
+      const month = select ? select.value : 'all';
+      const link = document.createElement('a');
+      link.download = `PLB_Money_Summary_${month.replace('-', '_')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    async function shareExportImage() {
+      const canvas = document.getElementById('exportCanvas');
+      const select = document.getElementById('exportMonthSelect');
+      const month = select ? select.value : 'all';
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const fileName = `PLB_Money_Summary_${month.replace('-', '_')}.png`;
+        const file = new File([blob], fileName, { type: 'image/png' });
+        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              title: 'สรุปยอดใช้จ่าย PLB Money Is King',
+              text: `สรุปรายจ่ายประจำเดือน (${month}) สแกนด้วยระบบ AI หมีขั้วโลก`,
+              files: [file]
+            });
+          } catch (err) {
+            if (err.name !== 'AbortError') {
+              downloadExportImage();
+            }
+          }
+        } else {
+          downloadExportImage();
+          alert('📥 ดาวน์โหลดรูปภาพสรุปรายจ่ายเรียบร้อยแล้วครับ!');
+        }
+      }, 'image/png');
     }
   </script>
 </body>
