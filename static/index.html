@@ -973,11 +973,37 @@
       }
     }
 
+    // Robust Data Cleaners (Zero null/undefined crashes)
+    function safeString(val, defaultVal = '') {
+      if (val === null || val === undefined) return defaultVal;
+      if (typeof val === 'object') {
+        try {
+          const parts = Object.values(val)
+            .filter(v => v !== null && v !== undefined)
+            .map(v => typeof v === 'object' ? safeString(v) : String(v).trim())
+            .filter(Boolean);
+          return parts.join(' ').trim() || defaultVal;
+        } catch (e) {
+          return defaultVal;
+        }
+      }
+      return String(val).trim() || defaultVal;
+    }
+
+    function safeAmount(val, defaultVal = 0) {
+      if (val === null || val === undefined) return defaultVal;
+      if (typeof val === 'number') return isNaN(val) ? defaultVal : val;
+      const cleaned = String(val).replace(/,/g, '').replace(/฿/g, '').replace(/บาท/g, '').trim();
+      const num = parseFloat(cleaned);
+      return isNaN(num) ? defaultVal : num;
+    }
+
     // Local Storage Resilient Transaction Store
     function getStoredTransactions() {
       try {
         const raw = localStorage.getItem('plb_transactions');
-        return raw ? JSON.parse(raw) : [];
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
       } catch (e) {
         return [];
       }
@@ -985,15 +1011,17 @@
 
     function saveStoredTransactions(list) {
       try {
-        localStorage.setItem('plb_transactions', JSON.stringify(list));
+        localStorage.setItem('plb_transactions', JSON.stringify(Array.isArray(list) ? list.filter(Boolean) : []));
       } catch (e) {
         console.warn('Failed to save to localStorage', e);
       }
     }
 
     function calculateStatsFromList(list) {
-      const totalAmount = list.reduce((sum, x) => sum + (parseFloat(x.amount) || 0), 0);
-      const totalCount = list.length;
+      if (!Array.isArray(list)) list = [];
+      const validList = list.filter(Boolean);
+      const totalAmount = validList.reduce((sum, x) => sum + (safeAmount(x.amount, 0)), 0);
+      const totalCount = validList.length;
       const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
 
       const catMap = {};
@@ -1001,29 +1029,28 @@
       const dayMap = {};
       const recMap = {};
 
-      list.forEach(item => {
-        const amt = parseFloat(item.amount) || 0;
-        const cat = item.category || '🍔 อาหารและเครื่องดื่ม';
+      validList.forEach(item => {
+        const amt = safeAmount(item.amount, 0);
+        const cat = safeString(item.category, '🍔 อาหารและเครื่องดื่ม');
         catMap[cat] = (catMap[cat] || 0) + amt;
 
-        const bank = item.bank || 'ไม่ระบุ';
+        const bank = safeString(item.bank, 'ไม่ระบุ');
         bankMap[bank] = (bankMap[bank] || 0) + amt;
 
-        if (item.date_time && item.date_time.length >= 10) {
-          const day = item.date_time.slice(0, 10);
+        const dt = safeString(item.date_time, '');
+        if (dt.length >= 10) {
+          const day = dt.slice(0, 10);
           dayMap[day] = (dayMap[day] || 0) + amt;
         }
 
-        if (item.receiver_name) {
-          const rec = typeof item.receiver_name === 'object' ? Object.values(item.receiver_name).join(' ') : String(item.receiver_name);
-          recMap[rec] = (recMap[rec] || 0) + amt;
-        }
+        const rec = safeString(item.receiver_name, 'ไม่ระบุผู้รับ');
+        recMap[rec] = (recMap[rec] || 0) + amt;
       });
 
-      const categories = Object.keys(catMap).map(k => ({ category: k, total: catMap[k], count: list.filter(x => x.category === k).length })).sort((a, b) => b.total - a.total);
-      const banks = Object.keys(bankMap).map(k => ({ bank: k, total: bankMap[k], count: list.filter(x => x.bank === k).length })).sort((a, b) => b.total - a.total);
-      const daily = Object.keys(dayMap).sort().map(k => ({ day: k, total: dayMap[k], count: list.filter(x => (x.date_time || '').slice(0, 10) === k).length }));
-      const top_receivers = Object.keys(recMap).map(k => ({ receiver_name: k, total: recMap[k], count: list.filter(x => x.receiver_name === k).length })).sort((a, b) => b.total - a.total).slice(0, 5);
+      const categories = Object.keys(catMap).map(k => ({ category: k, total: catMap[k], count: validList.filter(x => safeString(x.category) === k).length })).sort((a, b) => b.total - a.total);
+      const banks = Object.keys(bankMap).map(k => ({ bank: k, total: bankMap[k], count: validList.filter(x => safeString(x.bank) === k).length })).sort((a, b) => b.total - a.total);
+      const daily = Object.keys(dayMap).sort().map(k => ({ day: k, total: dayMap[k], count: validList.filter(x => safeString(x.date_time).slice(0, 10) === k).length }));
+      const top_receivers = Object.keys(recMap).map(k => ({ receiver_name: k, total: recMap[k], count: validList.filter(x => safeString(x.receiver_name) === k).length })).sort((a, b) => b.total - a.total).slice(0, 5);
 
       return {
         total_amount: Math.round(totalAmount * 100) / 100,
@@ -1056,11 +1083,13 @@
       const localList = getStoredTransactions();
       const map = new Map();
       serverList.forEach(tx => {
-        const key = tx.ref_id || String(tx.id);
+        if (!tx) return;
+        const key = safeString(tx.ref_id) || String(tx.id || Math.random());
         map.set(key, tx);
       });
       localList.forEach(tx => {
-        const key = tx.ref_id || String(tx.id);
+        if (!tx) return;
+        const key = safeString(tx.ref_id) || String(tx.id || Math.random());
         if (!map.has(key)) {
           map.set(key, tx);
         }
@@ -1624,7 +1653,7 @@
                 </label>
                 <div class="relative">
                   <span class="absolute left-3 top-2 text-sky-400 font-bold font-mono">฿</span>
-                  <input type="number" step="0.01" value="${item.amount || 0}" onchange="updateScannedField(${index}, 'amount', parseFloat(this.value))" class="w-full pl-7 pr-3 py-1.5 bg-slate-900 border-2 border-sky-400/40 rounded-xl font-bold font-mono text-base text-sky-100 focus:outline-none focus:border-sky-300 transition">
+                  <input type="number" step="0.01" value="${safeAmount(item.amount, 0)}" onchange="updateScannedField(${index}, 'amount', safeAmount(this.value, 0))" class="w-full pl-7 pr-3 py-1.5 bg-slate-900 border-2 border-sky-400/40 rounded-xl font-bold font-mono text-base text-sky-100 focus:outline-none focus:border-sky-300 transition">
                 </div>
               </div>
 
@@ -1637,18 +1666,18 @@
 
               <div>
                 <label class="block font-medium text-sky-200/80 mb-1">ผู้รับ / ร้านค้า:</label>
-                <input type="text" value="${item.receiver_name || ''}" onchange="updateScannedField(${index}, 'receiver_name', this.value)" class="w-full px-3 py-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
+                <input type="text" value="${safeString(item.receiver_name, '')}" onchange="updateScannedField(${index}, 'receiver_name', this.value)" class="w-full px-3 py-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
               </div>
 
               <div>
                 <label class="block font-medium text-sky-200/80 mb-1">วันและเวลา:</label>
-                <input type="text" value="${item.date_time || ''}" onchange="updateScannedField(${index}, 'date_time', this.value)" placeholder="YYYY-MM-DD HH:MM:SS" class="w-full px-3 py-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
+                <input type="text" value="${safeString(item.date_time, '')}" onchange="updateScannedField(${index}, 'date_time', this.value)" placeholder="YYYY-MM-DD HH:MM:SS" class="w-full px-3 py-1.5 bg-slate-900 border border-sky-400/30 rounded-xl text-slate-200 focus:outline-none focus:ring-1 focus:ring-sky-400">
               </div>
             </div>
 
             <!-- Notes & Ref ID -->
             <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1">
-              <span class="font-mono truncate mr-2">Ref: ${item.ref_id || '-'}</span>
+              <span class="font-mono truncate mr-2">Ref: ${safeString(item.ref_id, '-')}</span>
               <span class="text-sky-300 bg-sky-950/40 border border-sky-400/20 px-2 py-0.5 rounded-full font-mono shrink-0">${item.engine || 'AI'}</span>
             </div>
           </div>
@@ -1752,21 +1781,18 @@
           const item = { ...rawItem };
           readyText.innerText = `กำลังบันทึก ${i + 1}/${totalToSave}...`;
 
-          // Clean values
-          item.amount = parseFloat(String(item.amount || 0).replace(/,/g, '').replace(/฿/g, '').replace(/บาท/g, '').trim()) || 0;
-          item.fee = parseFloat(String(item.fee || 0).replace(/,/g, '').replace(/฿/g, '').replace(/บาท/g, '').trim()) || 0;
-          item.receiver_name = typeof item.receiver_name === 'object' ? Object.values(item.receiver_name).join(' ') : String(item.receiver_name || '').trim();
-          item.sender_name = typeof item.sender_name === 'object' ? Object.values(item.sender_name).join(' ') : String(item.sender_name || '').trim();
-          item.bank = String(item.bank || 'ไม่ระบุ').trim();
-          item.category = String(item.category || '🍔 อาหารและเครื่องดื่ม').trim();
-          item.transaction_type = String(item.transaction_type || 'โอนเงิน').trim();
-          item.note = String(item.note || '').trim();
-          item.date_time = String(item.date_time || new Date().toISOString().replace('T', ' ').slice(0, 19)).trim();
-          if (!item.ref_id || !String(item.ref_id).trim()) {
-            item.ref_id = 'PLB' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
-          } else {
-            item.ref_id = String(item.ref_id).trim();
-          }
+          // Clean values safely (prevents null/undefined crashes)
+          item.amount = safeAmount(item.amount, 0);
+          item.fee = safeAmount(item.fee, 0);
+          item.receiver_name = safeString(item.receiver_name, 'ไม่ระบุผู้รับ');
+          item.sender_name = safeString(item.sender_name, '');
+          item.bank = safeString(item.bank, 'ไม่ระบุ');
+          item.category = safeString(item.category, '🍔 อาหารและเครื่องดื่ม');
+          item.transaction_type = safeString(item.transaction_type, 'โอนเงิน');
+          item.note = safeString(item.note, '');
+          item.date_time = safeString(item.date_time, new Date().toISOString().replace('T', ' ').slice(0, 19));
+          const refStr = safeString(item.ref_id, '');
+          item.ref_id = refStr || ('PLB' + Date.now() + '_' + Math.random().toString(36).substring(2, 7));
 
           // Memory optimization: do NOT save heavy base64 images if lightweight mode is on
           if (isLightweight) {
@@ -1862,15 +1888,27 @@
       }
 
       container.innerHTML = list.map(tx => {
-        const badgeClass = getBankBadgeClass(tx.bank);
+        if (!tx) return '';
+        const badgeClass = getBankBadgeClass(safeString(tx.bank));
+        const bankName = safeString(tx.bank, 'ไม่ระบุธนาคาร');
+        const dateTime = safeString(tx.date_time, '');
+        const receiverName = safeString(tx.receiver_name, 'ไม่ระบุผู้รับ');
+        const categoryName = safeString(tx.category, '🍔 อาหารและเครื่องดื่ม');
+        const noteText = safeString(tx.note, '');
+        const amountNum = safeAmount(tx.amount, 0);
+        const txType = safeString(tx.transaction_type, 'โอนเงิน');
+        const imagePath = safeString(tx.image_path, '');
+        const refId = safeString(tx.ref_id, '');
+        const txId = tx.id || 0;
+
         return `
           <div class="frost-glass p-4 rounded-2xl border border-sky-400/20 shadow-lg hover:border-sky-400/40 transition flex items-center justify-between gap-3">
             <!-- Left Info -->
             <div class="flex items-center gap-3 min-w-0">
               <!-- Slip thumbnail -->
-              <div onclick="viewSlipImage('${tx.image_path}')" class="w-12 h-12 rounded-xl bg-black overflow-hidden cursor-pointer shrink-0 border border-sky-400/30 flex items-center justify-center relative group">
-                ${tx.image_path ? `
-                  <img src="${tx.image_path}" alt="Slip" class="w-full h-full object-cover">
+              <div onclick="viewSlipImage('${imagePath}')" class="w-12 h-12 rounded-xl bg-black overflow-hidden cursor-pointer shrink-0 border border-sky-400/30 flex items-center justify-center relative group">
+                ${imagePath ? `
+                  <img src="${imagePath}" alt="Slip" class="w-full h-full object-cover">
                   <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-sky-300 text-xs transition">
                     <i class="fa-solid fa-eye"></i>
                   </div>
@@ -1882,16 +1920,16 @@
               <div class="min-w-0">
                 <div class="flex items-center gap-1.5 mb-0.5">
                   <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border ${badgeClass}">
-                    ${tx.bank}
+                    ${bankName}
                   </span>
-                  <span class="text-[10px] text-slate-400 font-mono truncate">${tx.date_time || ''}</span>
+                  <span class="text-[10px] text-slate-400 font-mono truncate">${dateTime}</span>
                 </div>
                 <div class="font-bold text-xs sm:text-sm text-slate-100 truncate">
-                  ${tx.receiver_name || 'ไม่ระบุผู้รับ'}
+                  ${receiverName}
                 </div>
                 <div class="text-[10px] text-sky-300/70 flex items-center gap-2">
-                  <span>${tx.category}</span>
-                  ${tx.note ? `<span class="text-slate-600">•</span><span class="truncate text-slate-400">${tx.note}</span>` : ''}
+                  <span>${categoryName}</span>
+                  ${noteText ? `<span class="text-slate-600">•</span><span class="truncate text-slate-400">${noteText}</span>` : ''}
                 </div>
               </div>
             </div>
@@ -1900,11 +1938,11 @@
             <div class="flex items-center gap-3 shrink-0 text-right">
               <div>
                 <div class="text-sm sm:text-base font-extrabold frost-gradient-text font-mono">
-                  ฿${Number(tx.amount || 0).toLocaleString('th-TH', {minimumFractionDigits: 2})}
+                  ฿${amountNum.toLocaleString('th-TH', {minimumFractionDigits: 2})}
                 </div>
-                <div class="text-[9px] text-slate-400">${tx.transaction_type || 'โอนเงิน'}</div>
+                <div class="text-[9px] text-slate-400">${txType}</div>
               </div>
-              <button onclick="deleteTransactionItem(${tx.id || 0}, '${tx.ref_id || ''}')" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 flex items-center justify-center transition" title="ลบรายการ">
+              <button onclick="deleteTransactionItem(${txId}, '${refId}')" class="w-7 h-7 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 flex items-center justify-center transition" title="ลบรายการ">
                 <i class="fa-solid fa-trash-can text-xs"></i>
               </button>
             </div>
